@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Preston Learns 🍎🚒</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .welcome-emoji {
+      font-size: 4rem;
+      margin: 20px 0;
+    }
+    .greeting {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 30px;
+    }
+    .mode-selector {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .mode-btn {
+      padding: 20px 30px;
+      font-size: 1.3rem;
+      border: 3px solid var(--primary);
+      border-radius: 20px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .mode-btn:hover, .mode-btn.active {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+    .mode-btn .flag {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .mode-description {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1 id="main-title">Preston Learns! 📚</h1>
+      <p class="subtitle" id="main-subtitle">Stories with 嫲嫲 and 爺爺</p>
+    </header>
+
+    <main class="home">
+      <div class="welcome-emoji">👋</div>
+      <p class="greeting" id="greeting">Choose your mode:</p>
+      
+      <div class="mode-selector">
+        <button class="mode-btn" onclick="setMode('preston')">
+          <span class="flag">👦🇬🇧</span>
+          Preston
+          <div class="mode-description">Learn Cantonese</div>
+        </button>
+        <button class="mode-btn" onclick="setMode('grandparents')">
+          <span class="flag">👵👴🇭🇰</span>
+          嫲嫲 / 爺爺
+          <div class="mode-description">Learn English</div>
+        </button>
+      </div>
+
+      <div class="story-cards" id="story-cards" style="display: none;">
+        <a href="#" class="story-card" id="card-fruit">
+          <div class="emoji">🍎🍇🍌</div>
+          <h3 id="card-fruit-title">嫲嫲's Fruit Stand</h3>
+          <p id="card-fruit-desc">Learn fruit names!</p>
+        </a>
+
+        <a href="#" class="story-card" id="card-firetruck">
+          <div class="emoji">🚒🔥🐱</div>
+          <h3 id="card-firetruck-title">Firetruck Rescue</h3>
+          <p id="card-firetruck-desc">Help rescue kitties and count!</p>
+        </a>
+
+        <a href="#" class="story-card" id="card-garbage">
+          <div class="emoji">🚛♻️📦</div>
+          <h3 id="card-garbage-title">Garbage Truck Day</h3>
+          <p id="card-garbage-desc">Learn adding and subtracting!</p>
+        </a>
+
+        <a href="#" class="story-card" id="card-mittens">
+          <div class="emoji">🐱🐟🍗</div>
+          <h3 id="card-mittens-title">Feeding Mittens</h3>
+          <p id="card-mittens-desc">Learn what cats can eat!</p>
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const modes = {
+      preston: {
+        title: "Preston Learns! 📚",
+        subtitle: "Stories with 嫲嫲 and 爺爺",
+        greeting: "Hi Preston! 👋",
+        cards: {
+          fruit: { title: "嫲嫲's Fruit Stand", desc: "Learn fruit names in Cantonese!", href: "stories/fruit-stand/index.html?mode=preston" },
+          firetruck: { title: "Firetruck Rescue", desc: "Count and learn Cantonese!", href: "stories/firetruck/index.html?mode=preston" },
+          garbage: { title: "Garbage Truck Day", desc: "Math + Cantonese!", href: "stories/garbage-truck/index.html?mode=preston" },
+          mittens: { title: "Feeding Mittens", desc: "Learn what cats can eat!", href: "stories/feeding-mittens/index.html?mode=preston" }
+        }
+      },
+      grandparents: {
+        title: "學英文! 📚",
+        subtitle: "同 Preston 一齊學",
+        greeting: "你好! 👋",
+        cards: {
+          fruit: { title: "生果檔", desc: "學生果嘅英文!", href: "stories/fruit-stand/index.html?mode=grandparents" },
+          firetruck: { title: "消防車救援", desc: "數數同學英文!", href: "stories/firetruck/index.html?mode=grandparents" },
+          garbage: { title: "垃圾車日", desc: "數學同英文!", href: "stories/garbage-truck/index.html?mode=grandparents" },
+          mittens: { title: "餵貓仔", desc: "學貓可以食咩!", href: "stories/feeding-mittens/index.html?mode=grandparents" }
+        }
+      }
+    };
+
+    function setMode(mode) {
+      localStorage.setItem('learningMode', mode);
+      updateUI(mode);
+    }
+
+    function updateUI(mode) {
+      const m = modes[mode];
+      
+      // Update header
+      document.getElementById('main-title').textContent = m.title;
+      document.getElementById('main-subtitle').textContent = m.subtitle;
+      document.getElementById('greeting').textContent = m.greeting;
+      
+      // Update cards
+      document.getElementById('card-fruit-title').textContent = m.cards.fruit.title;
+      document.getElementById('card-fruit-desc').textContent = m.cards.fruit.desc;
+      document.getElementById('card-fruit').href = m.cards.fruit.href;
+      
+      document.getElementById('card-firetruck-title').textContent = m.cards.firetruck.title;
+      document.getElementById('card-firetruck-desc').textContent = m.cards.firetruck.desc;
+      document.getElementById('card-firetruck').href = m.cards.firetruck.href;
+      
+      document.getElementById('card-garbage-title').textContent = m.cards.garbage.title;
+      document.getElementById('card-garbage-desc').textContent = m.cards.garbage.desc;
+      document.getElementById('card-garbage').href = m.cards.garbage.href;
+      
+      document.getElementById('card-mittens-title').textContent = m.cards.mittens.title;
+      document.getElementById('card-mittens-desc').textContent = m.cards.mittens.desc;
+      document.getElementById('card-mittens').href = m.cards.mittens.href;
+      
+      // Show story cards
+      document.getElementById('story-cards').style.display = 'flex';
+      document.getElementById('story-cards').style.flexDirection = 'column';
+      
+      // Update button states
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      event?.target?.closest('.mode-btn')?.classList.add('active');
+    }
+
+    // Check for saved mode on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('learningMode');
+      if (saved) {
+        updateUI(saved);
+        document.querySelector(`.mode-btn:nth-child(${saved === 'preston' ? 1 : 2})`).classList.add('active');
+      }
+    });
+  </script>
+</body>
+</html>

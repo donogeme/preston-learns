@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>嫲嫲's Fruit Stand | Preston Learns</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body class="story-mode">
+  <div class="app">
+    <div class="storybook">
+      <div class="progress" id="progress"></div>
+      
+      <div class="story-page" id="story-content">
+        <!-- Content loaded by JS -->
+      </div>
+      
+      <div class="nav-buttons">
+        <button class="nav-btn prev" id="prev-btn" onclick="prevPage()">⬅️ Back</button>
+        <button class="nav-btn next" id="next-btn" onclick="nextPage()">Next ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Celebration Modal -->
+  <div class="celebration" id="celebration" style="display: none;">
+    <div class="celebration-content">
+      <h2>🎉 叻仔! Good job!</h2>
+      <div class="stars">⭐⭐⭐</div>
+      <p>You learned fruits with 嫲嫲!</p>
+      <br>
+      <button class="nav-btn next" onclick="goHome()">🏠 Home</button>
+    </div>
+  </div>
+
+  <script src="story.js"></script>
+</body>
+</html>
