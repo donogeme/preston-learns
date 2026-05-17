@@ -400,6 +400,7 @@ function showPage(pageNum) {
   readBtn.id = 'read-aloud-btn';
   readBtn.className = 'read-aloud-button';
   readBtn.innerHTML = '🔊';
+  readBtn.setAttribute('aria-label', 'Read page aloud');
   readBtn.onclick = readPageAloud;
   navDiv.appendChild(readBtn);
 }

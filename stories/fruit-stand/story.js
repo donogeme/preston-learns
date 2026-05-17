@@ -25,6 +25,13 @@ const numbers = {
   5: { english: 'Five', chinese: '五', jyutping: 'ng5', file: 'five' },
 };
 
+// Audio cache — reuse Audio objects instead of creating new ones on every tap
+const audioCache = {};
+function getCachedAudio(src) {
+  if (!audioCache[src]) audioCache[src] = new Audio(src);
+  return audioCache[src];
+}
+
 // Generic speak function with callback
 function speakText(text, lang, callback) {
   if ('speechSynthesis' in window) {
@@ -276,11 +283,11 @@ function speak(key) {
   }
   
   if (isGrandparents) {
-    const audio = new Audio(`../../assets/audio/english/${key}.mp3`);
+    const audio = getCachedAudio(`../../assets/audio/english/${key}.mp3`);
     audio.onerror = () => speakText(word.english, 'en-US');
     audio.play().catch(() => speakText(word.english, 'en-US'));
   } else {
-    const audio = new Audio(`../../assets/audio/tts/${key}.mp3`);
+    const audio = getCachedAudio(`../../assets/audio/tts/${key}.mp3`);
     audio.onended = () => {
       setTimeout(() => speakText(word.english, 'en-US'), 400);
     };
@@ -305,7 +312,7 @@ function renderPage() {
   
   updateProgress();
   
-  const readAloudBtn = `<button class="read-aloud-btn" id="read-aloud-btn" onclick="readPageAloud()">🔊</button>`;
+  const readAloudBtn = `<button class="read-aloud-btn" id="read-aloud-btn" onclick="readPageAloud()" aria-label="Read page aloud">🔊</button>`;
   
   if (page.type === 'story' || page.type === 'finale') {
     content.innerHTML = `
@@ -345,7 +352,7 @@ function renderPage() {
       </div>
       <div class="answers">
         ${page.options.map(n => `
-          <button class="answer-btn option" onclick="checkAnswer(${n}, ${page.correct})">
+          <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
             ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
@@ -372,7 +379,7 @@ function checkAnswer(selected, correct) {
   
   buttons.forEach(btn => {
     btn.disabled = true;
-    const btnValue = parseInt(btn.textContent);
+    const btnValue = parseInt(btn.getAttribute('data-value') ?? btn.textContent);
     if (btnValue === correct) {
       btn.classList.add('selected-correct');
     } else if (btnValue === selected && selected !== correct) {
