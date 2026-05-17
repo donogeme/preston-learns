@@ -1,124 +1,124 @@
 /**
- * Vowel Sound Sort - Game Logic v2.0
- * Complete rewrite with all UX fixes:
- * - P0-A: Onboarding tutorial
- * - P0-B: Tap-to-hear buckets
- * - P0-C: Better wrong-answer feedback with sound comparison
- * - P0-D: Hint after 2 wrong taps
- * - P0-E: First session = 5 words
- * - P1-A: Emoji-first, minimized text
- * - P1-B: Visual star progress
- * - P1-C: Slower timing (2.5s correct, 4s wrong)
- * - P1-D: Voice-narrated end screen
- * - P1-E: Pulsing speaker button
- * - P2-F: Idle prompt after 5s
+ * Magic E Adventure - Game Logic
+ * 
+ * Three-phase learning structure based on "I Do, We Do, You Do" pedagogy:
+ * 1. DISCOVER (I Do): Finn models Magic E transformations
+ * 2. PREDICT (We Do): Child adds Magic E with guidance
+ * 3. SORT (You Do): Independent identification practice
+ * 
+ * Based on research from:
+ * - Reading Universe (readinguniverse.org)
+ * - Little Lions Literacy
+ * - Starfall curriculum structure
  */
 
 // ============================================
-// WORD BANKS
+// WORD DATA - Minimal pairs for Magic E
 // ============================================
-const wordBanks = {
-  shortA: [
-    { word: 'cat', emoji: '🐱' },
-    { word: 'hat', emoji: '🎩' },
-    { word: 'bat', emoji: '🦇' },
-    { word: 'map', emoji: '🗺️' },
-    { word: 'cap', emoji: '🧢' },
-    { word: 'tap', emoji: '🚰' },
-    { word: 'nap', emoji: '😴' },
-    { word: 'bag', emoji: '👜' },
-    { word: 'tag', emoji: '🏷️' },
-    { word: 'sad', emoji: '😢' },
-    { word: 'dad', emoji: '👨' },
-    { word: 'mad', emoji: '😠' },
-    { word: 'pan', emoji: '🍳' },
-    { word: 'can', emoji: '🥫' },
-    { word: 'man', emoji: '🧑' },
-    { word: 'fan', emoji: '🪭' },
-    { word: 'rat', emoji: '🐀' },
-    { word: 'jam', emoji: '🍯' },
-    { word: 'ham', emoji: '🍖' },
-    { word: 'van', emoji: '🚐' }
+const wordPairs = {
+  // Demo words (Phase 1)
+  demo: [
+    { cvc: 'cap', cvce: 'cape', emojiCvc: '🧢', emojiCvce: '🦸' },
+    { cvc: 'tap', cvce: 'tape', emojiCvc: '🚰', emojiCvce: '📼' },
+    { cvc: 'hat', cvce: 'hate', emojiCvc: '🎩', emojiCvce: '😠' }
   ],
-  longA: [
-    { word: 'cake', emoji: '🎂' },
-    { word: 'make', emoji: '🔨' },
-    { word: 'lake', emoji: '🏞️' },
-    { word: 'bake', emoji: '🧁' },
-    { word: 'name', emoji: '📛' },
-    { word: 'game', emoji: '🎮' },
-    { word: 'same', emoji: '♊' },
-    { word: 'tape', emoji: '📼' },
-    { word: 'cape', emoji: '🦸' },
-    { word: 'grape', emoji: '🍇' },
-    { word: 'plane', emoji: '✈️' },
-    { word: 'rain', emoji: '🌧️' },
-    { word: 'train', emoji: '🚂' },
-    { word: 'tail', emoji: '🐕' },
-    { word: 'mail', emoji: '📬' },
-    { word: 'sail', emoji: '⛵' },
-    { word: 'day', emoji: '☀️' },
-    { word: 'play', emoji: '🎈' },
-    { word: 'say', emoji: '💬' },
-    { word: 'way', emoji: '🛤️' }
-  ]
+  
+  // Predict words (Phase 2) - Child adds the E
+  predict: [
+    { cvc: 'mat', cvce: 'mate', emojiCvc: '🧘', emojiCvce: '👫' },
+    { cvc: 'can', cvce: 'cane', emojiCvc: '🥫', emojiCvce: '🦯' },
+    { cvc: 'pan', cvce: 'pane', emojiCvc: '🍳', emojiCvce: '🪟' },
+    { cvc: 'man', cvce: 'mane', emojiCvc: '🧑', emojiCvce: '🦁' }
+  ],
+  
+  // Sort words (Phase 3) - Mix of CVC and CVCe
+  sort: {
+    cvc: [
+      { word: 'cat', emoji: '🐱' },
+      { word: 'bat', emoji: '🦇' },
+      { word: 'map', emoji: '🗺️' },
+      { word: 'nap', emoji: '😴' },
+      { word: 'bag', emoji: '👜' },
+      { word: 'sad', emoji: '😢' },
+      { word: 'dad', emoji: '👨' },
+      { word: 'van', emoji: '🚐' }
+    ],
+    cvce: [
+      { word: 'cake', emoji: '🎂' },
+      { word: 'lake', emoji: '🏞️' },
+      { word: 'bake', emoji: '🧁' },
+      { word: 'name', emoji: '📛' },
+      { word: 'game', emoji: '🎮' },
+      { word: 'cape', emoji: '🦸' },
+      { word: 'tape', emoji: '📼' },
+      { word: 'make', emoji: '🔨' }
+    ]
+  }
 };
 
 // ============================================
 // GAME STATE
 // ============================================
-let currentRound = [];
-let currentIndex = 0;
-let score = 0;
-let totalWords = 5; // P0-E: Start with 5 words for first session
-let isLocked = false;
-let wrongAttempts = 0; // P0-D: Track wrong attempts per word
-let idleTimer = null; // P2-F: Idle prompt timer
-let bucketTapMode = false; // Track if bucket was tapped (not selected)
-let hasSeenTutorial = false;
+const state = {
+  phase: 'discover',
+  discoverStep: 0,
+  predictIndex: 0,
+  sortIndex: 0,
+  sortRound: [],
+  score: 0,
+  totalSortWords: 6,
+  isLocked: false
+};
 
 // ============================================
 // DOM ELEMENTS
 // ============================================
 const elements = {
-  // Tutorial
-  tutorialOverlay: document.getElementById('tutorialOverlay'),
-  tutorialSkip: document.getElementById('tutorialSkip'),
-  demoApple: document.getElementById('demoApple'),
-  demoCake: document.getElementById('demoCake'),
+  // Phases
+  phaseDiscover: document.getElementById('phaseDiscover'),
+  phasePredict: document.getElementById('phasePredict'),
+  phaseSort: document.getElementById('phaseSort'),
+  phaseEnd: document.getElementById('phaseEnd'),
   
-  // Parent modal
-  parentModal: document.getElementById('parentModal'),
-  parentClose: document.getElementById('parentClose'),
-  parentDone: document.getElementById('parentDone'),
-  infoBtn: document.getElementById('infoBtn'),
+  // Discover phase
+  startDiscover: document.getElementById('startDiscover'),
+  startPredict: document.getElementById('startPredict'),
   
-  // Game
-  gameArea: document.getElementById('gameArea'),
-  playWordBtn: document.getElementById('playWordBtn'),
-  currentWord: document.getElementById('currentWord'),
-  currentEmoji: document.getElementById('currentEmoji'),
-  shortBucket: document.getElementById('shortBucket'),
-  longBucket: document.getElementById('longBucket'),
-  bucketPrompt: document.getElementById('bucketPrompt'),
+  // Predict phase
+  predictProgress: document.getElementById('predictProgress'),
+  predictWord: document.getElementById('predictWord'),
+  predictEmoji: document.getElementById('predictEmoji'),
+  predictLabel: document.getElementById('predictLabel'),
+  predictPrompt: document.getElementById('predictPrompt'),
+  predictAddE: document.getElementById('predictAddE'),
+  predictResult: document.getElementById('predictResult'),
+  resultText: document.getElementById('resultText'),
+  predictNext: document.getElementById('predictNext'),
   
-  // Score
-  scoreDisplay: document.getElementById('scoreDisplay'),
+  // Sort phase
   starContainer: document.getElementById('starContainer'),
+  sortEmoji: document.getElementById('sortEmoji'),
+  sortWord: document.getElementById('sortWord'),
+  playSortWord: document.getElementById('playSortWord'),
+  bucketNo: document.getElementById('bucketNo'),
+  bucketYes: document.getElementById('bucketYes'),
   
-  // End screen
-  endScreen: document.getElementById('endScreen'),
+  // End phase
   endTitle: document.getElementById('endTitle'),
-  finalStars: document.getElementById('finalStars'),
   endMessage: document.getElementById('endMessage'),
-  playAgainBtn: document.getElementById('playAgainBtn'),
+  finalStars: document.getElementById('finalStars'),
+  playAgain: document.getElementById('playAgain'),
+  
+  // Modal
+  parentModal: document.getElementById('parentModal'),
+  infoBtn: document.getElementById('infoBtn'),
+  closeModal: document.getElementById('closeModal'),
+  modalDone: document.getElementById('modalDone'),
   
   // Feedback
   feedbackOverlay: document.getElementById('feedbackOverlay'),
   feedbackIcon: document.getElementById('feedbackIcon'),
-  
-  // Idle prompt
-  idlePrompt: document.getElementById('idlePrompt')
+  sparkleContainer: document.getElementById('sparkleContainer')
 };
 
 // ============================================
@@ -131,53 +131,33 @@ function speak(text, callback) {
   
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'en-US';
-  utterance.rate = 0.8; // Slower for kids
-  utterance.pitch = 1.1; // Slightly higher for friendliness
+  utterance.rate = 0.75; // Slower for kids
+  utterance.pitch = 1.1;
   
   const voices = speechSynth.getVoices();
   const preferredVoice = voices.find(v => 
     v.lang.startsWith('en') && (v.name.includes('Samantha') || v.name.includes('Google US'))
   ) || voices.find(v => v.lang.startsWith('en-US'));
   
-  if (preferredVoice) {
-    utterance.voice = preferredVoice;
-  }
+  if (preferredVoice) utterance.voice = preferredVoice;
   
-  // Visual feedback during speech
-  elements.playWordBtn.classList.add('speaking');
-  elements.playWordBtn.classList.remove('pulsing');
-  
-  utterance.onend = () => {
-    elements.playWordBtn.classList.remove('speaking');
-    elements.playWordBtn.classList.add('pulsing');
-    if (callback) callback();
-  };
-  
-  utterance.onerror = () => {
-    elements.playWordBtn.classList.remove('speaking');
-    elements.playWordBtn.classList.add('pulsing');
-  };
-  
+  utterance.onend = () => { if (callback) callback(); };
   speechSynth.speak(utterance);
 }
 
-// Speak with a pause between phrases (for comparison)
-function speakSequence(phrases, delayMs = 600, finalCallback) {
+function speakSequence(phrases, delayMs = 500, callback) {
   let index = 0;
-  
-  function speakNext() {
+  function next() {
     if (index >= phrases.length) {
-      if (finalCallback) finalCallback();
+      if (callback) callback();
       return;
     }
-    
     speak(phrases[index], () => {
       index++;
-      setTimeout(speakNext, delayMs);
+      setTimeout(next, delayMs);
     });
   }
-  
-  speakNext();
+  next();
 }
 
 // ============================================
@@ -192,33 +172,261 @@ function shuffle(array) {
   return arr;
 }
 
-function generateRound() {
-  const halfWords = Math.ceil(totalWords / 2);
-  const shortWords = shuffle(wordBanks.shortA).slice(0, halfWords);
-  const longWords = shuffle(wordBanks.longA).slice(0, totalWords - halfWords);
+function showPhase(phaseName) {
+  document.querySelectorAll('.phase-screen').forEach(p => p.classList.add('hidden'));
+  document.getElementById(`phase${capitalize(phaseName)}`).classList.remove('hidden');
+  state.phase = phaseName;
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function createSparkles(element) {
+  const rect = element.getBoundingClientRect();
+  const container = elements.sparkleContainer;
   
-  const tagged = [
-    ...shortWords.map(w => ({ ...w, type: 'short' })),
-    ...longWords.map(w => ({ ...w, type: 'long' }))
-  ];
-  
-  return shuffle(tagged);
+  for (let i = 0; i < 12; i++) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.textContent = '✨';
+    sparkle.style.left = `${rect.left + rect.width / 2 + (Math.random() - 0.5) * 100}px`;
+    sparkle.style.top = `${rect.top + rect.height / 2 + (Math.random() - 0.5) * 60}px`;
+    sparkle.style.animationDelay = `${Math.random() * 0.3}s`;
+    container.appendChild(sparkle);
+    
+    setTimeout(() => sparkle.remove(), 1000);
+  }
+}
+
+function showFeedback(isCorrect) {
+  elements.feedbackIcon.textContent = isCorrect ? '✅' : '🔄';
+  elements.feedbackIcon.className = `feedback-icon ${isCorrect ? 'correct' : 'tryagain'}`;
+  elements.feedbackOverlay.classList.remove('show');
+  void elements.feedbackOverlay.offsetWidth;
+  elements.feedbackOverlay.classList.add('show');
 }
 
 // ============================================
-// VISUAL STAR PROGRESS (P1-B)
+// PHASE 1: DISCOVER (I Do)
 // ============================================
-function renderStars() {
+function initDiscover() {
+  state.discoverStep = 0;
+  showPhase('discover');
+  showDiscoverStep('intro');
+  
+  setTimeout(() => {
+    speak("Hi! I'm Finn. Today we learn about the Magic E!");
+  }, 500);
+}
+
+function showDiscoverStep(stepName) {
+  document.querySelectorAll('.discover-step').forEach(s => s.classList.remove('active'));
+  document.querySelector(`[data-step="${stepName}"]`).classList.add('active');
+}
+
+function runDemoSequence(demoNum) {
+  const pair = wordPairs.demo[demoNum - 1];
+  const step = document.querySelector(`[data-step="demo${demoNum}"]`);
+  const magicE = step.querySelector('.magic-e');
+  const wand = document.getElementById(`addMagicE${demoNum}`);
+  const nextBtn = document.getElementById(`nextDemo${demoNum}`);
+  const instruction = document.getElementById(`demoInstruction${demoNum}`);
+  const label = document.getElementById(`demoLabel${demoNum}`);
+  const emoji = document.getElementById(`demoEmoji${demoNum}`);
+  
+  // Reset state
+  magicE.classList.add('hidden');
+  wand.classList.add('hidden');
+  nextBtn.classList.add('hidden');
+  
+  // Step 1: Say CVC word
+  speak(pair.cvc, () => {
+    // Step 2: Show wand button
+    setTimeout(() => {
+      instruction.innerHTML = `Now watch the <strong>Magic E</strong>!`;
+      wand.classList.remove('hidden');
+      speak("Now watch the Magic E!");
+    }, 500);
+  });
+  
+  // Wand button click
+  wand.onclick = () => {
+    wand.classList.add('hidden');
+    
+    // Animate Magic E appearing
+    magicE.classList.remove('hidden');
+    magicE.classList.add('appearing');
+    createSparkles(magicE);
+    
+    // Highlight the vowel
+    step.querySelector('.vowel').classList.add('powered');
+    
+    setTimeout(() => {
+      // Update word and emoji
+      label.textContent = pair.cvce;
+      emoji.textContent = pair.emojiCvce;
+      
+      // Speak explanation
+      const vowelSound = "ay";
+      speakSequence([
+        pair.cvce,
+        `The E made the A say its name: ${vowelSound}!`
+      ], 400, () => {
+        instruction.innerHTML = `<strong>${pair.cvc}</strong> became <strong>${pair.cvce}</strong>!`;
+        nextBtn.classList.remove('hidden');
+      });
+    }, 600);
+  };
+  
+  // Next button
+  nextBtn.onclick = () => {
+    if (demoNum < 3) {
+      showDiscoverStep(`demo${demoNum + 1}`);
+      setTimeout(() => runDemoSequence(demoNum + 1), 300);
+    } else {
+      showDiscoverStep('summary');
+      setTimeout(() => {
+        speakSequence([
+          "The Magic E Rule!",
+          "When we add E to the end,",
+          "The A says its name: AY!"
+        ], 600);
+      }, 300);
+    }
+  };
+}
+
+// ============================================
+// PHASE 2: PREDICT (We Do)
+// ============================================
+function initPredict() {
+  state.predictIndex = 0;
+  showPhase('predict');
+  renderPredictProgress();
+  showPredictWord();
+}
+
+function renderPredictProgress() {
+  const container = elements.predictProgress;
+  container.innerHTML = '';
+  
+  for (let i = 0; i < wordPairs.predict.length; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'progress-dot';
+    if (i < state.predictIndex) dot.classList.add('done');
+    if (i === state.predictIndex) dot.classList.add('current');
+    container.appendChild(dot);
+  }
+}
+
+function showPredictWord() {
+  if (state.predictIndex >= wordPairs.predict.length) {
+    // Done with predict phase
+    setTimeout(() => {
+      speakSequence(["Great job!", "Now let's find the Magic E words!"], 400, () => {
+        initSort();
+      });
+    }, 500);
+    return;
+  }
+  
+  const pair = wordPairs.predict[state.predictIndex];
+  
+  // Build word display with individual letters
+  elements.predictWord.innerHTML = '';
+  for (let i = 0; i < pair.cvc.length; i++) {
+    const span = document.createElement('span');
+    span.className = 'letter';
+    if (i === 1) span.classList.add('vowel'); // Middle vowel
+    span.textContent = pair.cvc[i];
+    elements.predictWord.appendChild(span);
+  }
+  
+  // Add hidden Magic E
+  const magicE = document.createElement('span');
+  magicE.className = 'letter magic-e hidden';
+  magicE.textContent = 'e';
+  elements.predictWord.appendChild(magicE);
+  
+  elements.predictEmoji.textContent = pair.emojiCvc;
+  elements.predictLabel.textContent = pair.cvc;
+  elements.predictPrompt.textContent = `What happens when we add Magic E to "${pair.cvc}"?`;
+  elements.predictAddE.classList.remove('hidden');
+  elements.predictResult.classList.add('hidden');
+  
+  // Play the CVC word
+  setTimeout(() => speak(pair.cvc), 300);
+}
+
+function handlePredictAddE() {
+  const pair = wordPairs.predict[state.predictIndex];
+  const magicE = elements.predictWord.querySelector('.magic-e');
+  const vowel = elements.predictWord.querySelector('.vowel');
+  
+  elements.predictAddE.classList.add('hidden');
+  
+  // Animate Magic E
+  magicE.classList.remove('hidden');
+  magicE.classList.add('appearing');
+  createSparkles(magicE);
+  
+  // Power up the vowel
+  vowel.classList.add('powered');
+  
+  setTimeout(() => {
+    // Transform word
+    elements.predictLabel.textContent = pair.cvce;
+    elements.predictEmoji.textContent = pair.emojiCvce;
+    
+    // Show result
+    elements.resultText.textContent = `${pair.cvc} → ${pair.cvce}!`;
+    elements.predictResult.classList.remove('hidden');
+    
+    speakSequence([pair.cvce, "You did it!"], 400);
+  }, 600);
+}
+
+function handlePredictNext() {
+  state.predictIndex++;
+  renderPredictProgress();
+  
+  // Reset vowel state
+  const vowel = elements.predictWord.querySelector('.vowel');
+  if (vowel) vowel.classList.remove('powered');
+  
+  showPredictWord();
+}
+
+// ============================================
+// PHASE 3: SORT (You Do)
+// ============================================
+function initSort() {
+  state.sortIndex = 0;
+  state.score = 0;
+  
+  // Build mixed round: half CVC, half CVCe
+  const halfCount = Math.ceil(state.totalSortWords / 2);
+  const cvcWords = shuffle(wordPairs.sort.cvc).slice(0, halfCount).map(w => ({ ...w, type: 'cvc' }));
+  const cvceWords = shuffle(wordPairs.sort.cvce).slice(0, state.totalSortWords - halfCount).map(w => ({ ...w, type: 'cvce' }));
+  state.sortRound = shuffle([...cvcWords, ...cvceWords]);
+  
+  showPhase('sort');
+  renderSortStars();
+  showSortWord();
+}
+
+function renderSortStars() {
   const container = elements.starContainer;
   container.innerHTML = '';
   
-  for (let i = 0; i < totalWords; i++) {
+  for (let i = 0; i < state.totalSortWords; i++) {
     const star = document.createElement('span');
     star.className = 'progress-star';
-    if (i < score) {
+    if (i < state.score) {
       star.textContent = '⭐';
       star.classList.add('earned');
-    } else if (i < currentIndex) {
+    } else if (i < state.sortIndex) {
       star.textContent = '☆';
       star.classList.add('missed');
     } else {
@@ -229,363 +437,93 @@ function renderStars() {
   }
 }
 
-// ============================================
-// IDLE PROMPT (P2-F)
-// ============================================
-function startIdleTimer() {
-  clearIdleTimer();
-  idleTimer = setTimeout(() => {
-    elements.idlePrompt.classList.add('show');
-    speak("Tap the bucket that sounds the same!");
-  }, 5000);
-}
-
-function clearIdleTimer() {
-  if (idleTimer) {
-    clearTimeout(idleTimer);
-    idleTimer = null;
-  }
-  elements.idlePrompt.classList.remove('show');
-}
-
-// ============================================
-// TUTORIAL SYSTEM (P0-A)
-// ============================================
-function initTutorial() {
-  // Check if returning player
-  const progress = JSON.parse(localStorage.getItem('vowelSort_progress') || '{}');
-  hasSeenTutorial = progress.hasSeenTutorial || false;
-  
-  // Determine word count (P0-E: 5 for first few sessions, then 10)
-  const attempts = progress.a?.attempts || 0;
-  totalWords = attempts < 3 ? 5 : 10;
-  
-  if (hasSeenTutorial) {
-    // Skip tutorial for returning players
-    elements.tutorialOverlay.style.display = 'none';
-    startGame();
-    return;
-  }
-  
-  // Show tutorial
-  elements.tutorialOverlay.style.display = 'flex';
-  
-  // Tutorial screen 1: Welcome
-  document.getElementById('tutorialNext1').addEventListener('click', () => {
-    speak("Hi! I'm Finn the Fox. Let's play a listening game!", () => {
-      goToTutorialScreen(2);
-    });
-  });
-  
-  // Tutorial screen 2: Short A demo
-  document.getElementById('tutorialNext2').addEventListener('click', () => {
-    goToTutorialScreen(3);
-  });
-  
-  // Tutorial screen 3: Long A demo
-  document.getElementById('tutorialNext3').addEventListener('click', () => {
-    goToTutorialScreen(4);
-  });
-  
-  // Tutorial screen 4: Start game
-  document.getElementById('tutorialStart').addEventListener('click', () => {
-    completeTutorial();
-  });
-  
-  // Skip button
-  elements.tutorialSkip.addEventListener('click', () => {
-    completeTutorial();
-  });
-  
-  // Demo bucket taps
-  elements.demoApple?.addEventListener('click', () => {
-    elements.demoApple.classList.add('demo-active');
-    speakSequence(['apple', 'aaa'], 400, () => {
-      elements.demoApple.classList.remove('demo-active');
-    });
-  });
-  
-  elements.demoCake?.addEventListener('click', () => {
-    elements.demoCake.classList.add('demo-active');
-    speakSequence(['cake', 'ay'], 400, () => {
-      elements.demoCake.classList.remove('demo-active');
-    });
-  });
-  
-  // Auto-play first screen
-  setTimeout(() => {
-    speak("Hi! I'm Finn the Fox. Let's play a listening game!");
-  }, 500);
-}
-
-function goToTutorialScreen(screenNum) {
-  document.querySelectorAll('.tutorial-screen').forEach(s => s.classList.remove('active'));
-  document.querySelector(`[data-screen="${screenNum}"]`).classList.add('active');
-  
-  // Auto-play audio for each screen
-  if (screenNum === 2) {
-    setTimeout(() => {
-      speakSequence(['This is apple', 'Listen: aaa, like in cat'], 500);
-    }, 300);
-  } else if (screenNum === 3) {
-    setTimeout(() => {
-      speakSequence(['This is cake', 'Listen: ay, like in rain'], 500);
-    }, 300);
-  } else if (screenNum === 4) {
-    setTimeout(() => {
-      speak("Now you pick! Which bucket sounds the same?");
-    }, 300);
-  }
-}
-
-function completeTutorial() {
-  // Save that tutorial was seen
-  const progress = JSON.parse(localStorage.getItem('vowelSort_progress') || '{}');
-  progress.hasSeenTutorial = true;
-  localStorage.setItem('vowelSort_progress', JSON.stringify(progress));
-  
-  // Hide tutorial with fade
-  elements.tutorialOverlay.classList.add('fade-out');
-  setTimeout(() => {
-    elements.tutorialOverlay.style.display = 'none';
-    startGame();
-  }, 400);
-}
-
-// ============================================
-// PARENT INFO MODAL (P1-F)
-// ============================================
-function initParentModal() {
-  elements.infoBtn.addEventListener('click', () => {
-    elements.parentModal.classList.add('show');
-  });
-  
-  elements.parentClose.addEventListener('click', closeParentModal);
-  elements.parentDone.addEventListener('click', closeParentModal);
-  
-  // Close on backdrop click
-  elements.parentModal.addEventListener('click', (e) => {
-    if (e.target === elements.parentModal) {
-      closeParentModal();
-    }
-  });
-}
-
-function closeParentModal() {
-  elements.parentModal.classList.remove('show');
-}
-
-// ============================================
-// GAME LOGIC
-// ============================================
-function startGame() {
-  currentRound = generateRound();
-  currentIndex = 0;
-  score = 0;
-  wrongAttempts = 0;
-  isLocked = false;
-  
-  renderStars();
-  elements.endScreen.classList.remove('show');
-  elements.gameArea.classList.remove('hidden');
-  
-  // Hide bucket tap hints after first word
-  elements.shortBucket.querySelector('.tap-hint-icon').style.display = 'block';
-  elements.longBucket.querySelector('.tap-hint-icon').style.display = 'block';
-  
-  showCurrentWord();
-}
-
-function showCurrentWord() {
-  if (currentIndex >= currentRound.length) {
+function showSortWord() {
+  if (state.sortIndex >= state.sortRound.length) {
     endGame();
     return;
   }
   
-  const current = currentRound[currentIndex];
-  elements.currentWord.textContent = current.word;
-  elements.currentEmoji.textContent = current.emoji;
-  wrongAttempts = 0;
+  const word = state.sortRound[state.sortIndex];
+  elements.sortWord.textContent = word.word;
+  elements.sortEmoji.textContent = word.emoji;
   
   // Reset bucket states
-  elements.shortBucket.classList.remove('correct', 'wrong', 'highlight', 'hint-glow');
-  elements.longBucket.classList.remove('correct', 'wrong', 'highlight', 'hint-glow');
-  elements.bucketPrompt.textContent = 'Which one sounds the same?';
+  elements.bucketNo.classList.remove('correct', 'wrong', 'highlight');
+  elements.bucketYes.classList.remove('correct', 'wrong', 'highlight');
   
-  // Hide tap hints after first word
-  if (currentIndex > 0) {
-    elements.shortBucket.querySelector('.tap-hint-icon').style.display = 'none';
-    elements.longBucket.querySelector('.tap-hint-icon').style.display = 'none';
-  }
-  
-  // Auto-play word and start idle timer
-  setTimeout(() => {
-    speak(current.word, () => {
-      startIdleTimer();
-    });
-  }, 300);
+  // Play word
+  setTimeout(() => speak(word.word), 300);
 }
 
-// ============================================
-// BUCKET TAP-TO-HEAR (P0-B)
-// ============================================
-function handleBucketTap(type, event) {
-  if (isLocked) return;
+function handleSortBucket(selectedType) {
+  if (state.isLocked) return;
+  state.isLocked = true;
   
-  clearIdleTimer();
+  const word = state.sortRound[state.sortIndex];
+  const isCorrect = (selectedType === 'cvce' && word.type === 'cvce') || 
+                   (selectedType === 'cvc' && word.type === 'cvc');
   
-  // Check if it's a "preview" tap or a "selection" tap
-  // First tap = preview (play anchor word), second tap within 2s = select
-  const bucket = type === 'short' ? elements.shortBucket : elements.longBucket;
-  
-  if (bucket.dataset.previewing === 'true') {
-    // Second tap - make selection
-    bucket.dataset.previewing = 'false';
-    makeSelection(type);
-  } else {
-    // First tap - play anchor word
-    bucket.dataset.previewing = 'true';
-    const anchorWord = type === 'short' ? 'apple' : 'cake';
-    speak(anchorWord);
-    bucket.classList.add('previewing');
-    
-    // Reset preview state after 2 seconds
-    setTimeout(() => {
-      bucket.dataset.previewing = 'false';
-      bucket.classList.remove('previewing');
-    }, 2000);
-    
-    // Restart idle timer
-    startIdleTimer();
-  }
-}
-
-function makeSelection(selectedType) {
-  isLocked = true;
-  clearIdleTimer();
-  
-  // Clear preview states
-  elements.shortBucket.dataset.previewing = 'false';
-  elements.longBucket.dataset.previewing = 'false';
-  elements.shortBucket.classList.remove('previewing');
-  elements.longBucket.classList.remove('previewing');
-  
-  const current = currentRound[currentIndex];
-  const isCorrect = current.type === selectedType;
-  
-  const selectedBucket = selectedType === 'short' ? elements.shortBucket : elements.longBucket;
-  const correctBucket = current.type === 'short' ? elements.shortBucket : elements.longBucket;
+  const selectedBucket = selectedType === 'cvce' ? elements.bucketYes : elements.bucketNo;
+  const correctBucket = word.type === 'cvce' ? elements.bucketYes : elements.bucketNo;
   
   if (isCorrect) {
-    handleCorrectAnswer(selectedBucket);
-  } else {
-    wrongAttempts++;
-    handleWrongAnswer(selectedBucket, correctBucket, current);
-  }
-}
-
-function handleCorrectAnswer(selectedBucket) {
-  score++;
-  renderStars();
-  
-  selectedBucket.classList.add('correct');
-  showFeedback(true);
-  
-  // Varied praise
-  const praises = ['Yes!', 'Good job!', 'Great!', 'Awesome!', 'Nice!', 'You got it!'];
-  const praise = praises[Math.floor(Math.random() * praises.length)];
-  setTimeout(() => speak(praise), 400);
-  
-  // P1-C: Slower timing (2.5s for correct)
-  setTimeout(() => {
-    currentIndex++;
-    isLocked = false;
-    showCurrentWord();
-  }, 2500);
-}
-
-function handleWrongAnswer(selectedBucket, correctBucket, current) {
-  selectedBucket.classList.add('wrong');
-  showFeedback(false);
-  
-  const anchorWord = current.type === 'short' ? 'apple' : 'cake';
-  
-  // P0-D: After 2 wrong attempts, give stronger hint
-  if (wrongAttempts >= 2) {
-    // Strong hint: highlight correct bucket and give explicit teaching
+    state.score++;
+    renderSortStars();
+    selectedBucket.classList.add('correct');
+    showFeedback(true);
+    
+    const praises = ['Yes!', 'Good job!', 'You got it!', 'Awesome!'];
+    speak(praises[Math.floor(Math.random() * praises.length)]);
+    
     setTimeout(() => {
-      correctBucket.classList.add('hint-glow');
-      elements.bucketPrompt.textContent = `Try the ${anchorWord} bucket! 👆`;
+      state.sortIndex++;
+      state.isLocked = false;
+      showSortWord();
+    }, 2000);
+  } else {
+    selectedBucket.classList.add('wrong');
+    showFeedback(false);
+    
+    setTimeout(() => {
+      correctBucket.classList.add('highlight');
       
-      // P0-C: Better feedback - play sound comparison
-      speakSequence([
-        current.word,
-        anchorWord,
-        'They sound the same!'
-      ], 500, () => {
-        // Auto-advance after teaching moment
+      const hasMagicE = word.type === 'cvce';
+      const explanation = hasMagicE 
+        ? `${word.word} has Magic E! Hear the AY sound?`
+        : `${word.word} doesn't have Magic E.`;
+      
+      speak(explanation, () => {
         setTimeout(() => {
-          currentIndex++;
-          isLocked = false;
-          showCurrentWord();
+          state.sortIndex++;
+          state.isLocked = false;
+          showSortWord();
         }, 1500);
       });
     }, 600);
-  } else {
-    // P0-C: Play sound comparison
-    setTimeout(() => {
-      correctBucket.classList.add('highlight');
-      speakSequence([
-        current.word,
-        anchorWord, 
-        'Same sound!'
-      ], 500);
-    }, 600);
-    
-    // P1-C: Slower timing (4s for wrong)
-    setTimeout(() => {
-      currentIndex++;
-      isLocked = false;
-      showCurrentWord();
-    }, 4000);
   }
 }
 
-function showFeedback(isCorrect) {
-  elements.feedbackIcon.textContent = isCorrect ? '✅' : '🔄';
-  elements.feedbackIcon.className = `feedback-icon ${isCorrect ? 'correct' : 'wrong'}`;
-  elements.feedbackOverlay.classList.remove('show');
-  
-  void elements.feedbackOverlay.offsetWidth;
-  elements.feedbackOverlay.classList.add('show');
-}
-
 // ============================================
-// END GAME (P1-D: Voice-narrated)
+// END GAME
 // ============================================
 function endGame() {
-  clearIdleTimer();
+  showPhase('end');
   
-  const percentage = (score / totalWords) * 100;
-  
-  // Determine result
+  const percentage = (state.score / state.totalSortWords) * 100;
   let title, message, voiceMessage;
+  
   if (percentage >= 80) {
-    title = '🎉 Amazing!';
-    message = "You're a sound superstar!";
-    voiceMessage = `Amazing! You got ${score} out of ${totalWords}! You're a superstar!`;
+    title = 'Amazing! 🎉';
+    message = "You're a Magic E expert!";
+    voiceMessage = `Amazing! You got ${state.score} out of ${state.totalSortWords}! You're a Magic E expert!`;
   } else if (percentage >= 60) {
-    title = '🌟 Great Job!';
-    message = "You're learning your sounds!";
-    voiceMessage = `Great job! You got ${score} out of ${totalWords}!`;
-  } else if (percentage >= 40) {
-    title = '👍 Good Try!';
-    message = "Keep practicing!";
-    voiceMessage = `Good try! You got ${score}. Let's practice more!`;
+    title = 'Great Job! 🌟';
+    message = "You're learning the Magic E!";
+    voiceMessage = `Great job! You got ${state.score}! Keep practicing!`;
   } else {
-    title = '💪 Nice Effort!';
-    message = "Let's try again!";
-    voiceMessage = `Nice try! Let's play again and listen carefully!`;
+    title = 'Good Try! 👍';
+    message = "Let's practice more!";
+    voiceMessage = `Good try! Let's practice the Magic E more!`;
   }
   
   elements.endTitle.textContent = title;
@@ -593,79 +531,63 @@ function endGame() {
   
   // Render final stars
   elements.finalStars.innerHTML = '';
-  for (let i = 0; i < totalWords; i++) {
+  for (let i = 0; i < state.totalSortWords; i++) {
     const star = document.createElement('span');
     star.className = 'final-star';
-    star.textContent = i < score ? '⭐' : '☆';
+    star.textContent = i < state.score ? '⭐' : '☆';
     star.style.animationDelay = `${i * 0.1}s`;
     elements.finalStars.appendChild(star);
   }
   
-  // Save progress
-  saveProgress();
-  
-  // Show end screen
-  elements.endScreen.classList.add('show');
-  
-  // P1-D: Voice narration
   setTimeout(() => speak(voiceMessage), 300);
 }
 
-function saveProgress() {
-  const key = 'vowelSort_progress';
-  let progress = JSON.parse(localStorage.getItem(key) || '{}');
-  
-  if (!progress.a) {
-    progress.a = { attempts: 0, bestScore: 0, scores: [], mastered: false };
-  }
-  
-  progress.a.attempts++;
-  progress.a.bestScore = Math.max(progress.a.bestScore, score);
-  progress.a.scores.push({
-    score: score,
-    total: totalWords,
-    date: new Date().toISOString()
-  });
-  
-  // Keep only last 20 scores
-  if (progress.a.scores.length > 20) {
-    progress.a.scores = progress.a.scores.slice(-20);
-  }
-  
-  // Check mastery (3 rounds of 80%+)
-  const recentScores = progress.a.scores.slice(-5);
-  const highScores = recentScores.filter(s => (s.score / s.total) >= 0.8);
-  if (highScores.length >= 3) {
-    progress.a.mastered = true;
-  }
-  
-  progress.hasSeenTutorial = true;
-  
-  localStorage.setItem(key, JSON.stringify(progress));
+// ============================================
+// MODAL
+// ============================================
+function openModal() {
+  elements.parentModal.classList.remove('hidden');
+}
+
+function closeModal() {
+  elements.parentModal.classList.add('hidden');
 }
 
 // ============================================
 // EVENT LISTENERS
 // ============================================
-elements.playWordBtn.addEventListener('click', () => {
-  clearIdleTimer();
-  if (currentIndex < currentRound.length) {
-    speak(currentRound[currentIndex].word, () => {
-      startIdleTimer();
-    });
+elements.startDiscover.addEventListener('click', () => {
+  showDiscoverStep('demo1');
+  setTimeout(() => runDemoSequence(1), 300);
+});
+
+elements.startPredict.addEventListener('click', initPredict);
+
+elements.predictAddE.addEventListener('click', handlePredictAddE);
+elements.predictNext.addEventListener('click', handlePredictNext);
+
+elements.playSortWord.addEventListener('click', () => {
+  if (state.sortIndex < state.sortRound.length) {
+    speak(state.sortRound[state.sortIndex].word);
   }
 });
 
-// Bucket tap-to-hear (P0-B)
-elements.shortBucket.addEventListener('click', (e) => handleBucketTap('short', e));
-elements.longBucket.addEventListener('click', (e) => handleBucketTap('long', e));
+elements.bucketNo.addEventListener('click', () => handleSortBucket('cvc'));
+elements.bucketYes.addEventListener('click', () => handleSortBucket('cvce'));
 
-elements.playAgainBtn.addEventListener('click', () => {
-  speak("Let's play again!");
-  setTimeout(startGame, 500);
+elements.playAgain.addEventListener('click', () => {
+  speak("Let's learn Magic E again!");
+  setTimeout(initDiscover, 500);
 });
 
-// Initialize speech synthesis voices
+elements.infoBtn?.addEventListener('click', openModal);
+elements.closeModal?.addEventListener('click', closeModal);
+elements.modalDone?.addEventListener('click', closeModal);
+elements.parentModal?.addEventListener('click', (e) => {
+  if (e.target === elements.parentModal) closeModal();
+});
+
+// Initialize voices
 if (speechSynth.onvoiceschanged !== undefined) {
   speechSynth.onvoiceschanged = () => {};
 }
@@ -673,12 +595,5 @@ if (speechSynth.onvoiceschanged !== undefined) {
 // ============================================
 // INITIALIZE
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
-  initParentModal();
-  initTutorial();
-});
-
-if (document.readyState !== 'loading') {
-  initParentModal();
-  initTutorial();
-}
+document.addEventListener('DOMContentLoaded', initDiscover);
+if (document.readyState !== 'loading') initDiscover();

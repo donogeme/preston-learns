@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Vowel Sound Sort 🍎🎂</title>
+  <title>Magic E Adventure 🪄</title>
   <link rel="stylesheet" href="../../css/style.css">
   <link rel="stylesheet" href="game.css">
 </head>
@@ -13,166 +13,232 @@
   <div class="app game-app">
     
     <!-- ============================================ -->
-    <!-- ONBOARDING TUTORIAL (P0-A)                   -->
+    <!-- PHASE 1: DISCOVER (I Do) - Teacher Models   -->
     <!-- ============================================ -->
-    <div class="tutorial-overlay" id="tutorialOverlay">
-      <div class="tutorial-content">
+    <div class="phase-screen phase-discover" id="phaseDiscover">
+      <div class="phase-content">
         
-        <!-- Screen 1: Welcome -->
-        <div class="tutorial-screen active" data-screen="1">
-          <div class="tutorial-character">🦊</div>
-          <h2>Let's Learn Sounds!</h2>
-          <p class="tutorial-text">Hi! I'm Finn the Fox. Let's play a listening game!</p>
-          <button class="tutorial-btn" id="tutorialNext1">Let's Go! 🎉</button>
+        <!-- Intro screen -->
+        <div class="discover-step active" data-step="intro">
+          <div class="character">🦊</div>
+          <h1>Magic E Adventure!</h1>
+          <p class="intro-text">Hi! I'm Finn. Today we learn about the <strong>Magic E</strong>!</p>
+          <button class="big-btn" id="startDiscover">Let's Go! ✨</button>
         </div>
         
-        <!-- Screen 2: Teach Short A -->
-        <div class="tutorial-screen" data-screen="2">
-          <div class="tutorial-demo">
-            <div class="demo-bucket demo-apple" id="demoApple">
-              <span class="bucket-emoji">🍎</span>
-              <span class="bucket-label">apple</span>
+        <!-- Transformation demo screens (3 word pairs) -->
+        <div class="discover-step" data-step="demo1">
+          <div class="transformation-container">
+            <div class="word-display">
+              <span class="letter">c</span>
+              <span class="letter vowel">a</span>
+              <span class="letter">p</span>
+              <span class="letter magic-e hidden">e</span>
             </div>
+            <div class="word-emoji" id="demoEmoji1">🧢</div>
+            <div class="word-label" id="demoLabel1">cap</div>
           </div>
-          <p class="tutorial-text">This is <strong>apple</strong>. Listen to the sound:</p>
-          <p class="tutorial-sound">"aaa" like in <strong>cat</strong> 🐱</p>
-          <button class="tutorial-btn" id="tutorialNext2">I Hear It! 👂</button>
+          <p class="demo-instruction" id="demoInstruction1">This is <strong>cap</strong>. Listen...</p>
+          <button class="magic-wand-btn hidden" id="addMagicE1">
+            <span class="wand">🪄</span>
+            <span>Add Magic E!</span>
+          </button>
+          <button class="next-btn hidden" id="nextDemo1">Next →</button>
         </div>
         
-        <!-- Screen 3: Teach Long A -->
-        <div class="tutorial-screen" data-screen="3">
-          <div class="tutorial-demo">
-            <div class="demo-bucket demo-cake" id="demoCake">
-              <span class="bucket-emoji">🎂</span>
-              <span class="bucket-label">cake</span>
+        <div class="discover-step" data-step="demo2">
+          <div class="transformation-container">
+            <div class="word-display">
+              <span class="letter">t</span>
+              <span class="letter vowel">a</span>
+              <span class="letter">p</span>
+              <span class="letter magic-e hidden">e</span>
             </div>
+            <div class="word-emoji" id="demoEmoji2">🚰</div>
+            <div class="word-label" id="demoLabel2">tap</div>
           </div>
-          <p class="tutorial-text">This is <strong>cake</strong>. Listen to the sound:</p>
-          <p class="tutorial-sound">"ay" like in <strong>rain</strong> 🌧️</p>
-          <button class="tutorial-btn" id="tutorialNext3">Got It! 👍</button>
+          <p class="demo-instruction" id="demoInstruction2">This is <strong>tap</strong>. Listen...</p>
+          <button class="magic-wand-btn hidden" id="addMagicE2">
+            <span class="wand">🪄</span>
+            <span>Add Magic E!</span>
+          </button>
+          <button class="next-btn hidden" id="nextDemo2">Next →</button>
         </div>
         
-        <!-- Screen 4: Practice intro -->
-        <div class="tutorial-screen" data-screen="4">
-          <div class="tutorial-buckets">
-            <div class="demo-bucket demo-apple mini">
-              <span class="bucket-emoji">🍎</span>
+        <div class="discover-step" data-step="demo3">
+          <div class="transformation-container">
+            <div class="word-display">
+              <span class="letter">h</span>
+              <span class="letter vowel">a</span>
+              <span class="letter">t</span>
+              <span class="letter magic-e hidden">e</span>
             </div>
-            <div class="demo-bucket demo-cake mini">
-              <span class="bucket-emoji">🎂</span>
-            </div>
+            <div class="word-emoji" id="demoEmoji3">🎩</div>
+            <div class="word-label" id="demoLabel3">hat</div>
           </div>
-          <p class="tutorial-text">Now <strong>you</strong> pick! Which bucket sounds the same?</p>
-          <p class="tutorial-hint">Tap a bucket to hear its word anytime!</p>
-          <button class="tutorial-btn" id="tutorialStart">Start Playing! 🎮</button>
+          <p class="demo-instruction" id="demoInstruction3">This is <strong>hat</strong>. Listen...</p>
+          <button class="magic-wand-btn hidden" id="addMagicE3">
+            <span class="wand">🪄</span>
+            <span>Add Magic E!</span>
+          </button>
+          <button class="next-btn hidden" id="nextDemo3">Next →</button>
+        </div>
+        
+        <!-- Summary before practice -->
+        <div class="discover-step" data-step="summary">
+          <div class="character">🦊</div>
+          <h2>The Magic E Rule!</h2>
+          <p class="rule-text">When we add <strong>E</strong> to the end...</p>
+          <p class="rule-text">The <strong>A</strong> says its name: <strong>"AY"</strong>!</p>
+          <div class="example-pairs">
+            <span class="pair">cap → cape</span>
+            <span class="pair">tap → tape</span>
+            <span class="pair">hat → hate</span>
+          </div>
+          <button class="big-btn" id="startPredict">Now You Try! 🎯</button>
         </div>
         
       </div>
-      
-      <!-- Skip button for returning players -->
-      <button class="tutorial-skip" id="tutorialSkip">Skip →</button>
     </div>
     
     <!-- ============================================ -->
-    <!-- PARENT INFO MODAL (P1-F)                     -->
+    <!-- PHASE 2: PREDICT (We Do) - Guided Practice  -->
     <!-- ============================================ -->
-    <div class="parent-modal" id="parentModal">
-      <div class="parent-content">
-        <button class="parent-close" id="parentClose">✕</button>
-        <h2>📚 For Parents</h2>
-        <div class="parent-section">
-          <h3>What This Teaches</h3>
-          <p>This game develops <strong>phonemic awareness</strong> — the ability to hear and distinguish vowel sounds in words.</p>
-          <p>Preston is learning to tell the difference between:</p>
-          <ul>
-            <li><strong>Short A</strong> (/ă/) — the "ah" sound in "cat", "hat", "map"</li>
-            <li><strong>Long A</strong> (/ā/) — the "ay" sound in "cake", "rain", "play"</li>
-          </ul>
+    <div class="phase-screen phase-predict hidden" id="phasePredict">
+      <header class="game-header">
+        <span class="phase-label">Your Turn!</span>
+        <div class="progress-dots" id="predictProgress">
+          <!-- Dots injected by JS -->
         </div>
-        <div class="parent-section">
-          <h3>How to Help</h3>
-          <ul>
-            <li>Tap the buckets together to compare sounds</li>
-            <li>Exaggerate the vowel: "c-AAA-t" vs "c-AY-ke"</li>
-            <li>No worries about wrong answers — that's learning!</li>
-            <li>First session is 5 words, then increases to 10</li>
-          </ul>
+      </header>
+      
+      <div class="phase-content">
+        <div class="predict-container">
+          <p class="predict-prompt" id="predictPrompt">What happens when we add Magic E?</p>
+          
+          <div class="transformation-container interactive">
+            <div class="word-display" id="predictWord">
+              <!-- Letters injected by JS -->
+            </div>
+            <div class="word-emoji" id="predictEmoji">🧘</div>
+            <div class="word-label" id="predictLabel">mat</div>
+          </div>
+          
+          <button class="magic-wand-btn big" id="predictAddE">
+            <span class="wand">🪄</span>
+            <span>Tap to add Magic E!</span>
+          </button>
+          
+          <div class="predict-result hidden" id="predictResult">
+            <p class="result-text" id="resultText">mat → mate!</p>
+            <button class="next-btn" id="predictNext">Next Word →</button>
+          </div>
         </div>
-        <button class="parent-done-btn" id="parentDone">Got It!</button>
       </div>
     </div>
-
+    
     <!-- ============================================ -->
-    <!-- GAME HEADER                                  -->
+    <!-- PHASE 3: SORT (You Do) - Independent Practice -->
     <!-- ============================================ -->
-    <header class="game-header">
-      <a href="../../index.html" class="back-btn" aria-label="Go home">🏠</a>
-      <div class="score-display" id="scoreDisplay">
-        <!-- Visual stars instead of numbers (P1-B) -->
+    <div class="phase-screen phase-sort hidden" id="phaseSort">
+      <header class="game-header">
+        <a href="../../index.html" class="back-btn" aria-label="Go home">🏠</a>
         <div class="star-container" id="starContainer">
           <!-- Stars injected by JS -->
         </div>
-      </div>
-      <button class="info-btn" id="infoBtn" aria-label="Parent info">ℹ️</button>
-    </header>
-
-    <!-- ============================================ -->
-    <!-- MAIN GAME AREA                               -->
-    <!-- ============================================ -->
-    <main class="game-area" id="gameArea">
-      <!-- Current word display -->
-      <div class="word-section">
-        <button class="play-word-btn pulsing" id="playWordBtn" aria-label="Play word">
-          🔊
-        </button>
-        <!-- Minimized word text, enlarged emoji (P1-A) -->
-        <div class="current-emoji" id="currentEmoji">🐱</div>
-        <div class="current-word" id="currentWord">cat</div>
-      </div>
-
-      <!-- Bucket section with tap-to-hear (P0-B) -->
-      <div class="bucket-section">
-        <p class="bucket-prompt" id="bucketPrompt">Which one sounds the same?</p>
-        <div class="bucket-container">
-          <!-- Distinct colors: red for apple, golden for cake (P2-B) -->
-          <button class="vowel-bucket apple-bucket" id="shortBucket" data-type="short" aria-label="Tap to hear apple, or pick this bucket">
-            <span class="bucket-emoji">🍎</span>
-            <span class="bucket-label">apple</span>
-            <span class="tap-hint-icon">👆 tap me!</span>
-          </button>
-          <button class="vowel-bucket cake-bucket" id="longBucket" data-type="long" aria-label="Tap to hear cake, or pick this bucket">
-            <span class="bucket-emoji">🎂</span>
-            <span class="bucket-label">cake</span>
-            <span class="tap-hint-icon">👆 tap me!</span>
-          </button>
-        </div>
-      </div>
-    </main>
-
-    <!-- ============================================ -->
-    <!-- END SCREEN                                   -->
-    <!-- ============================================ -->
-    <div class="end-screen" id="endScreen">
-      <div class="end-content">
-        <div class="end-character">🦊</div>
-        <h2 id="endTitle">Great Job! 🎉</h2>
-        <div class="final-stars" id="finalStars">
-          <!-- Visual stars injected by JS -->
-        </div>
-        <p id="endMessage">You're learning your sounds!</p>
-        <div class="end-buttons">
-          <button class="play-again-btn" id="playAgainBtn">
-            <span>🔄</span>
-            <span>Play Again</span>
-          </button>
-          <a href="../../index.html" class="home-btn">
-            <span>🏠</span>
-            <span>Home</span>
-          </a>
+        <button class="info-btn" id="infoBtn" aria-label="Parent info">ℹ️</button>
+      </header>
+      
+      <div class="phase-content">
+        <div class="sort-container">
+          <p class="sort-prompt">Does this word have Magic E?</p>
+          
+          <div class="word-card" id="sortWordCard">
+            <button class="play-word-btn" id="playSortWord" aria-label="Play word">🔊</button>
+            <div class="word-emoji" id="sortEmoji">🧢</div>
+            <div class="word-text" id="sortWord">cap</div>
+          </div>
+          
+          <div class="sort-buckets">
+            <button class="sort-bucket no-magic" id="bucketNo" data-type="short">
+              <span class="bucket-icon">🚫</span>
+              <span class="bucket-label">No Magic E</span>
+              <span class="bucket-example">cap, hat, tap</span>
+            </button>
+            <button class="sort-bucket yes-magic" id="bucketYes" data-type="long">
+              <span class="bucket-icon">✨</span>
+              <span class="bucket-label">Magic E!</span>
+              <span class="bucket-example">cape, hate, tape</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
-
+    
+    <!-- ============================================ -->
+    <!-- END SCREEN                                   -->
+    <!-- ============================================ -->
+    <div class="phase-screen phase-end hidden" id="phaseEnd">
+      <div class="phase-content">
+        <div class="end-container">
+          <div class="end-character">🦊</div>
+          <h2 id="endTitle">Amazing! 🎉</h2>
+          <div class="final-stars" id="finalStars">
+            <!-- Stars injected by JS -->
+          </div>
+          <p id="endMessage">You learned the Magic E!</p>
+          <div class="end-buttons">
+            <button class="big-btn" id="playAgain">
+              <span>🔄</span> Play Again
+            </button>
+            <a href="../../index.html" class="home-link">
+              <span>🏠</span> Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ============================================ -->
+    <!-- PARENT INFO MODAL                            -->
+    <!-- ============================================ -->
+    <div class="modal-overlay hidden" id="parentModal">
+      <div class="modal-content">
+        <button class="modal-close" id="closeModal">✕</button>
+        <h2>📚 For Parents</h2>
+        
+        <div class="modal-section">
+          <h3>What This Teaches</h3>
+          <p>The <strong>Magic E</strong> (or "Silent E") rule: when a word ends in vowel-consonant-E, the E is silent but makes the vowel "say its name."</p>
+          <ul>
+            <li>cap → cape (A says "ay")</li>
+            <li>hop → hope (O says "oh")</li>
+            <li>kit → kite (I says "eye")</li>
+          </ul>
+        </div>
+        
+        <div class="modal-section">
+          <h3>Learning Progression</h3>
+          <ol>
+            <li><strong>Discover:</strong> Finn shows word transformations</li>
+            <li><strong>Predict:</strong> Child adds the Magic E themselves</li>
+            <li><strong>Sort:</strong> Identify which words have Magic E</li>
+          </ol>
+        </div>
+        
+        <div class="modal-section">
+          <h3>How to Help</h3>
+          <ul>
+            <li>Exaggerate vowel sounds: "c-AAA-p" vs "c-AY-pe"</li>
+            <li>In real life, point out Magic E words (cake, bike, home)</li>
+            <li>Play "What if we add Magic E?" with CVC words</li>
+          </ul>
+        </div>
+        
+        <button class="modal-done" id="modalDone">Got It!</button>
+      </div>
+    </div>
+    
     <!-- ============================================ -->
     <!-- FEEDBACK OVERLAY                             -->
     <!-- ============================================ -->
@@ -181,11 +247,9 @@
     </div>
     
     <!-- ============================================ -->
-    <!-- IDLE PROMPT (P2-F)                           -->
+    <!-- SPARKLE CONTAINER (for animations)           -->
     <!-- ============================================ -->
-    <div class="idle-prompt" id="idlePrompt">
-      <p>Tap the bucket that sounds the same! 👆</p>
-    </div>
+    <div class="sparkle-container" id="sparkleContainer"></div>
 
   </div>
 
