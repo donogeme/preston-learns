@@ -227,7 +227,7 @@ function handleBucketTap(selectedType) {
       correctBucket.classList.add('highlight');
       // Speak the anchor word of the correct bucket
       const anchorWord = current.type === 'short' ? 'apple' : 'cake';
-      speak(`This one goes with ${anchorWord}`);
+      speak(`${current.word} sounds like ${anchorWord}`);
     }, 600);
     
     // Move to next word after showing correct answer
@@ -331,7 +331,7 @@ function saveProgress() {
  * Play bucket anchor word when tapped (without making a selection)
  */
 function playBucketAnchor(type) {
-  const word = type === 'short' ? 'apple, ah' : 'cake, ay';
+  const word = type === 'short' ? 'apple' : 'cake';
   speak(word);
 }
 

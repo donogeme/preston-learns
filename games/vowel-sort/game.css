@@ -122,13 +122,20 @@
 /* Bucket section */
 .bucket-section {
   padding: 20px;
+  text-align: center;
+}
+
+.bucket-prompt {
+  font-size: 1.4rem;
+  color: var(--text);
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
 .bucket-container {
   display: flex;
   justify-content: center;
   gap: 30px;
-  margin-bottom: 15px;
 }
 
 .vowel-bucket {
@@ -143,7 +150,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
   font-family: inherit;
 }
@@ -195,24 +202,10 @@
   font-size: 3.5rem;
 }
 
-.bucket-sound {
-  font-size: 1.8rem;
+.bucket-label {
+  font-size: 1.6rem;
   font-weight: bold;
   color: var(--primary);
-}
-
-.bucket-anchor {
-  font-size: 1.1rem;
-  color: #666;
-}
-
-.bucket-labels {
-  display: flex;
-  justify-content: center;
-  gap: 80px;
-  font-size: 1rem;
-  color: #888;
-  font-weight: 600;
 }
 
 /* Feedback overlay */
@@ -365,8 +358,8 @@
     font-size: 2.8rem;
   }
   
-  .bucket-sound {
-    font-size: 1.5rem;
+  .bucket-label {
+    font-size: 1.3rem;
   }
   
   .current-word {
@@ -379,10 +372,6 @@
   
   .bucket-container {
     gap: 20px;
-  }
-  
-  .bucket-labels {
-    gap: 50px;
   }
 }
 
