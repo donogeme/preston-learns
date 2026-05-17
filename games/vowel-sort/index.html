@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Vowel Sound Sort 🍎🎂</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+  <div class="app game-app">
+    <!-- Header with back button and score -->
+    <header class="game-header">
+      <a href="../../index.html" class="back-btn">← Back</a>
+      <div class="score-display">
+        <span class="star">⭐</span>
+        <span id="score">0</span>/<span id="total">10</span>
+      </div>
+    </header>
+
+    <!-- Main game area -->
+    <main class="game-area">
+      <!-- Current word display -->
+      <div class="word-section">
+        <button class="play-word-btn" id="playWordBtn" aria-label="Play word">
+          🔊
+        </button>
+        <div class="current-word" id="currentWord">cat</div>
+        <div class="current-emoji" id="currentEmoji">🐱</div>
+        <p class="tap-hint">Tap 🔊 to hear the word again</p>
+      </div>
+
+      <!-- Bucket section -->
+      <div class="bucket-section">
+        <div class="bucket-container">
+          <button class="vowel-bucket" id="shortBucket" data-type="short">
+            <span class="bucket-emoji">🍎</span>
+            <span class="bucket-sound">/ă/</span>
+            <span class="bucket-anchor">"apple"</span>
+          </button>
+          <button class="vowel-bucket" id="longBucket" data-type="long">
+            <span class="bucket-emoji">🎂</span>
+            <span class="bucket-sound">/ā/</span>
+            <span class="bucket-anchor">"cake"</span>
+          </button>
+        </div>
+        <div class="bucket-labels">
+          <span>Short A</span>
+          <span>Long A</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- End screen overlay -->
+    <div class="end-screen" id="endScreen">
+      <div class="end-content">
+        <h2 id="endTitle">Great Job! 🎉</h2>
+        <div class="final-score">
+          <span class="big-star">⭐</span>
+          <span id="finalScore">8</span>/10
+        </div>
+        <div class="stars-earned" id="starsEarned">⭐⭐⭐</div>
+        <p id="endMessage">You're learning your vowel sounds!</p>
+        <div class="end-buttons">
+          <button class="play-again-btn" id="playAgainBtn">Play Again 🔄</button>
+          <a href="../../index.html" class="home-btn">Home 🏠</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback overlay (brief flash) -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+      <span class="feedback-icon" id="feedbackIcon">✅</span>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
