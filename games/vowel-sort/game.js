@@ -1,9 +1,22 @@
 /**
- * Vowel Sound Sort - Game Logic
- * Preston Learns to distinguish short vs long vowel sounds
+ * Vowel Sound Sort - Game Logic v2.0
+ * Complete rewrite with all UX fixes:
+ * - P0-A: Onboarding tutorial
+ * - P0-B: Tap-to-hear buckets
+ * - P0-C: Better wrong-answer feedback with sound comparison
+ * - P0-D: Hint after 2 wrong taps
+ * - P0-E: First session = 5 words
+ * - P1-A: Emoji-first, minimized text
+ * - P1-B: Visual star progress
+ * - P1-C: Slower timing (2.5s correct, 4s wrong)
+ * - P1-D: Voice-narrated end screen
+ * - P1-E: Pulsing speaker button
+ * - P2-F: Idle prompt after 5s
  */
 
-// Word banks with emojis for visual support
+// ============================================
+// WORD BANKS
+// ============================================
 const wordBanks = {
   shortA: [
     { word: 'cat', emoji: '🐱' },
@@ -51,49 +64,76 @@ const wordBanks = {
   ]
 };
 
-// Game state
+// ============================================
+// GAME STATE
+// ============================================
 let currentRound = [];
 let currentIndex = 0;
 let score = 0;
-let totalWords = 10;
-let isLocked = false; // Prevent rapid taps
+let totalWords = 5; // P0-E: Start with 5 words for first session
+let isLocked = false;
+let wrongAttempts = 0; // P0-D: Track wrong attempts per word
+let idleTimer = null; // P2-F: Idle prompt timer
+let bucketTapMode = false; // Track if bucket was tapped (not selected)
+let hasSeenTutorial = false;
 
-// DOM elements
+// ============================================
+// DOM ELEMENTS
+// ============================================
 const elements = {
+  // Tutorial
+  tutorialOverlay: document.getElementById('tutorialOverlay'),
+  tutorialSkip: document.getElementById('tutorialSkip'),
+  demoApple: document.getElementById('demoApple'),
+  demoCake: document.getElementById('demoCake'),
+  
+  // Parent modal
+  parentModal: document.getElementById('parentModal'),
+  parentClose: document.getElementById('parentClose'),
+  parentDone: document.getElementById('parentDone'),
+  infoBtn: document.getElementById('infoBtn'),
+  
+  // Game
+  gameArea: document.getElementById('gameArea'),
   playWordBtn: document.getElementById('playWordBtn'),
   currentWord: document.getElementById('currentWord'),
   currentEmoji: document.getElementById('currentEmoji'),
   shortBucket: document.getElementById('shortBucket'),
   longBucket: document.getElementById('longBucket'),
-  scoreDisplay: document.getElementById('score'),
-  totalDisplay: document.getElementById('total'),
+  bucketPrompt: document.getElementById('bucketPrompt'),
+  
+  // Score
+  scoreDisplay: document.getElementById('scoreDisplay'),
+  starContainer: document.getElementById('starContainer'),
+  
+  // End screen
   endScreen: document.getElementById('endScreen'),
   endTitle: document.getElementById('endTitle'),
-  finalScore: document.getElementById('finalScore'),
-  starsEarned: document.getElementById('starsEarned'),
+  finalStars: document.getElementById('finalStars'),
   endMessage: document.getElementById('endMessage'),
   playAgainBtn: document.getElementById('playAgainBtn'),
+  
+  // Feedback
   feedbackOverlay: document.getElementById('feedbackOverlay'),
-  feedbackIcon: document.getElementById('feedbackIcon')
+  feedbackIcon: document.getElementById('feedbackIcon'),
+  
+  // Idle prompt
+  idlePrompt: document.getElementById('idlePrompt')
 };
 
-// Speech synthesis setup
+// ============================================
+// SPEECH SYNTHESIS
+// ============================================
 let speechSynth = window.speechSynthesis;
-let currentUtterance = null;
 
-/**
- * Speak a word using Web Speech API
- */
 function speak(text, callback) {
-  // Cancel any ongoing speech
   speechSynth.cancel();
   
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'en-US';
-  utterance.rate = 0.85; // Slightly slower for clarity
-  utterance.pitch = 1.0;
+  utterance.rate = 0.8; // Slower for kids
+  utterance.pitch = 1.1; // Slightly higher for friendliness
   
-  // Try to get a good voice
   const voices = speechSynth.getVoices();
   const preferredVoice = voices.find(v => 
     v.lang.startsWith('en') && (v.name.includes('Samantha') || v.name.includes('Google US'))
@@ -105,23 +145,44 @@ function speak(text, callback) {
   
   // Visual feedback during speech
   elements.playWordBtn.classList.add('speaking');
+  elements.playWordBtn.classList.remove('pulsing');
   
   utterance.onend = () => {
     elements.playWordBtn.classList.remove('speaking');
+    elements.playWordBtn.classList.add('pulsing');
     if (callback) callback();
   };
   
   utterance.onerror = () => {
     elements.playWordBtn.classList.remove('speaking');
+    elements.playWordBtn.classList.add('pulsing');
   };
   
-  currentUtterance = utterance;
   speechSynth.speak(utterance);
 }
 
-/**
- * Shuffle array (Fisher-Yates)
- */
+// Speak with a pause between phrases (for comparison)
+function speakSequence(phrases, delayMs = 600, finalCallback) {
+  let index = 0;
+  
+  function speakNext() {
+    if (index >= phrases.length) {
+      if (finalCallback) finalCallback();
+      return;
+    }
+    
+    speak(phrases[index], () => {
+      index++;
+      setTimeout(speakNext, delayMs);
+    });
+  }
+  
+  speakNext();
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
 function shuffle(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -131,14 +192,11 @@ function shuffle(array) {
   return arr;
 }
 
-/**
- * Generate a round of words (balanced short/long)
- */
 function generateRound() {
-  const shortWords = shuffle(wordBanks.shortA).slice(0, 5);
-  const longWords = shuffle(wordBanks.longA).slice(0, 5);
+  const halfWords = Math.ceil(totalWords / 2);
+  const shortWords = shuffle(wordBanks.shortA).slice(0, halfWords);
+  const longWords = shuffle(wordBanks.longA).slice(0, totalWords - halfWords);
   
-  // Tag each word with its type
   const tagged = [
     ...shortWords.map(w => ({ ...w, type: 'short' })),
     ...longWords.map(w => ({ ...w, type: 'long' }))
@@ -147,25 +205,197 @@ function generateRound() {
   return shuffle(tagged);
 }
 
-/**
- * Start a new game
- */
+// ============================================
+// VISUAL STAR PROGRESS (P1-B)
+// ============================================
+function renderStars() {
+  const container = elements.starContainer;
+  container.innerHTML = '';
+  
+  for (let i = 0; i < totalWords; i++) {
+    const star = document.createElement('span');
+    star.className = 'progress-star';
+    if (i < score) {
+      star.textContent = '⭐';
+      star.classList.add('earned');
+    } else if (i < currentIndex) {
+      star.textContent = '☆';
+      star.classList.add('missed');
+    } else {
+      star.textContent = '☆';
+      star.classList.add('pending');
+    }
+    container.appendChild(star);
+  }
+}
+
+// ============================================
+// IDLE PROMPT (P2-F)
+// ============================================
+function startIdleTimer() {
+  clearIdleTimer();
+  idleTimer = setTimeout(() => {
+    elements.idlePrompt.classList.add('show');
+    speak("Tap the bucket that sounds the same!");
+  }, 5000);
+}
+
+function clearIdleTimer() {
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+  }
+  elements.idlePrompt.classList.remove('show');
+}
+
+// ============================================
+// TUTORIAL SYSTEM (P0-A)
+// ============================================
+function initTutorial() {
+  // Check if returning player
+  const progress = JSON.parse(localStorage.getItem('vowelSort_progress') || '{}');
+  hasSeenTutorial = progress.hasSeenTutorial || false;
+  
+  // Determine word count (P0-E: 5 for first few sessions, then 10)
+  const attempts = progress.a?.attempts || 0;
+  totalWords = attempts < 3 ? 5 : 10;
+  
+  if (hasSeenTutorial) {
+    // Skip tutorial for returning players
+    elements.tutorialOverlay.style.display = 'none';
+    startGame();
+    return;
+  }
+  
+  // Show tutorial
+  elements.tutorialOverlay.style.display = 'flex';
+  
+  // Tutorial screen 1: Welcome
+  document.getElementById('tutorialNext1').addEventListener('click', () => {
+    speak("Hi! I'm Finn the Fox. Let's play a listening game!", () => {
+      goToTutorialScreen(2);
+    });
+  });
+  
+  // Tutorial screen 2: Short A demo
+  document.getElementById('tutorialNext2').addEventListener('click', () => {
+    goToTutorialScreen(3);
+  });
+  
+  // Tutorial screen 3: Long A demo
+  document.getElementById('tutorialNext3').addEventListener('click', () => {
+    goToTutorialScreen(4);
+  });
+  
+  // Tutorial screen 4: Start game
+  document.getElementById('tutorialStart').addEventListener('click', () => {
+    completeTutorial();
+  });
+  
+  // Skip button
+  elements.tutorialSkip.addEventListener('click', () => {
+    completeTutorial();
+  });
+  
+  // Demo bucket taps
+  elements.demoApple?.addEventListener('click', () => {
+    elements.demoApple.classList.add('demo-active');
+    speakSequence(['apple', 'aaa'], 400, () => {
+      elements.demoApple.classList.remove('demo-active');
+    });
+  });
+  
+  elements.demoCake?.addEventListener('click', () => {
+    elements.demoCake.classList.add('demo-active');
+    speakSequence(['cake', 'ay'], 400, () => {
+      elements.demoCake.classList.remove('demo-active');
+    });
+  });
+  
+  // Auto-play first screen
+  setTimeout(() => {
+    speak("Hi! I'm Finn the Fox. Let's play a listening game!");
+  }, 500);
+}
+
+function goToTutorialScreen(screenNum) {
+  document.querySelectorAll('.tutorial-screen').forEach(s => s.classList.remove('active'));
+  document.querySelector(`[data-screen="${screenNum}"]`).classList.add('active');
+  
+  // Auto-play audio for each screen
+  if (screenNum === 2) {
+    setTimeout(() => {
+      speakSequence(['This is apple', 'Listen: aaa, like in cat'], 500);
+    }, 300);
+  } else if (screenNum === 3) {
+    setTimeout(() => {
+      speakSequence(['This is cake', 'Listen: ay, like in rain'], 500);
+    }, 300);
+  } else if (screenNum === 4) {
+    setTimeout(() => {
+      speak("Now you pick! Which bucket sounds the same?");
+    }, 300);
+  }
+}
+
+function completeTutorial() {
+  // Save that tutorial was seen
+  const progress = JSON.parse(localStorage.getItem('vowelSort_progress') || '{}');
+  progress.hasSeenTutorial = true;
+  localStorage.setItem('vowelSort_progress', JSON.stringify(progress));
+  
+  // Hide tutorial with fade
+  elements.tutorialOverlay.classList.add('fade-out');
+  setTimeout(() => {
+    elements.tutorialOverlay.style.display = 'none';
+    startGame();
+  }, 400);
+}
+
+// ============================================
+// PARENT INFO MODAL (P1-F)
+// ============================================
+function initParentModal() {
+  elements.infoBtn.addEventListener('click', () => {
+    elements.parentModal.classList.add('show');
+  });
+  
+  elements.parentClose.addEventListener('click', closeParentModal);
+  elements.parentDone.addEventListener('click', closeParentModal);
+  
+  // Close on backdrop click
+  elements.parentModal.addEventListener('click', (e) => {
+    if (e.target === elements.parentModal) {
+      closeParentModal();
+    }
+  });
+}
+
+function closeParentModal() {
+  elements.parentModal.classList.remove('show');
+}
+
+// ============================================
+// GAME LOGIC
+// ============================================
 function startGame() {
   currentRound = generateRound();
   currentIndex = 0;
   score = 0;
+  wrongAttempts = 0;
   isLocked = false;
   
-  elements.scoreDisplay.textContent = score;
-  elements.totalDisplay.textContent = totalWords;
+  renderStars();
   elements.endScreen.classList.remove('show');
+  elements.gameArea.classList.remove('hidden');
+  
+  // Hide bucket tap hints after first word
+  elements.shortBucket.querySelector('.tap-hint-icon').style.display = 'block';
+  elements.longBucket.querySelector('.tap-hint-icon').style.display = 'block';
   
   showCurrentWord();
 }
 
-/**
- * Display the current word
- */
 function showCurrentWord() {
   if (currentIndex >= currentRound.length) {
     endGame();
@@ -175,21 +405,70 @@ function showCurrentWord() {
   const current = currentRound[currentIndex];
   elements.currentWord.textContent = current.word;
   elements.currentEmoji.textContent = current.emoji;
+  wrongAttempts = 0;
   
-  // Clear bucket states
-  elements.shortBucket.classList.remove('correct', 'wrong', 'highlight');
-  elements.longBucket.classList.remove('correct', 'wrong', 'highlight');
+  // Reset bucket states
+  elements.shortBucket.classList.remove('correct', 'wrong', 'highlight', 'hint-glow');
+  elements.longBucket.classList.remove('correct', 'wrong', 'highlight', 'hint-glow');
+  elements.bucketPrompt.textContent = 'Which one sounds the same?';
   
-  // Auto-play the word after a short delay
-  setTimeout(() => speak(current.word), 300);
+  // Hide tap hints after first word
+  if (currentIndex > 0) {
+    elements.shortBucket.querySelector('.tap-hint-icon').style.display = 'none';
+    elements.longBucket.querySelector('.tap-hint-icon').style.display = 'none';
+  }
+  
+  // Auto-play word and start idle timer
+  setTimeout(() => {
+    speak(current.word, () => {
+      startIdleTimer();
+    });
+  }, 300);
 }
 
-/**
- * Handle bucket tap
- */
-function handleBucketTap(selectedType) {
+// ============================================
+// BUCKET TAP-TO-HEAR (P0-B)
+// ============================================
+function handleBucketTap(type, event) {
   if (isLocked) return;
+  
+  clearIdleTimer();
+  
+  // Check if it's a "preview" tap or a "selection" tap
+  // First tap = preview (play anchor word), second tap within 2s = select
+  const bucket = type === 'short' ? elements.shortBucket : elements.longBucket;
+  
+  if (bucket.dataset.previewing === 'true') {
+    // Second tap - make selection
+    bucket.dataset.previewing = 'false';
+    makeSelection(type);
+  } else {
+    // First tap - play anchor word
+    bucket.dataset.previewing = 'true';
+    const anchorWord = type === 'short' ? 'apple' : 'cake';
+    speak(anchorWord);
+    bucket.classList.add('previewing');
+    
+    // Reset preview state after 2 seconds
+    setTimeout(() => {
+      bucket.dataset.previewing = 'false';
+      bucket.classList.remove('previewing');
+    }, 2000);
+    
+    // Restart idle timer
+    startIdleTimer();
+  }
+}
+
+function makeSelection(selectedType) {
   isLocked = true;
+  clearIdleTimer();
+  
+  // Clear preview states
+  elements.shortBucket.dataset.previewing = 'false';
+  elements.longBucket.dataset.previewing = 'false';
+  elements.shortBucket.classList.remove('previewing');
+  elements.longBucket.classList.remove('previewing');
   
   const current = currentRound[currentIndex];
   const isCorrect = current.type === selectedType;
@@ -198,104 +477,140 @@ function handleBucketTap(selectedType) {
   const correctBucket = current.type === 'short' ? elements.shortBucket : elements.longBucket;
   
   if (isCorrect) {
-    // Correct answer
-    score++;
-    elements.scoreDisplay.textContent = score;
-    
-    selectedBucket.classList.add('correct');
-    showFeedback(true);
-    
-    // Speak encouragement
-    const praises = ['Yes!', 'Good job!', 'Great!', 'Awesome!', 'Nice!'];
-    const praise = praises[Math.floor(Math.random() * praises.length)];
-    setTimeout(() => speak(praise), 400);
-    
-    // Move to next word
-    setTimeout(() => {
-      currentIndex++;
-      isLocked = false;
-      showCurrentWord();
-    }, 1500);
-    
+    handleCorrectAnswer(selectedBucket);
   } else {
-    // Wrong answer
-    selectedBucket.classList.add('wrong');
-    showFeedback(false);
-    
-    // Highlight correct bucket
-    setTimeout(() => {
-      correctBucket.classList.add('highlight');
-      // Speak the anchor word of the correct bucket
-      const anchorWord = current.type === 'short' ? 'apple' : 'cake';
-      speak(`${current.word} sounds like ${anchorWord}`);
-    }, 600);
-    
-    // Move to next word after showing correct answer
-    setTimeout(() => {
-      currentIndex++;
-      isLocked = false;
-      showCurrentWord();
-    }, 2500);
+    wrongAttempts++;
+    handleWrongAnswer(selectedBucket, correctBucket, current);
   }
 }
 
-/**
- * Show visual feedback overlay
- */
+function handleCorrectAnswer(selectedBucket) {
+  score++;
+  renderStars();
+  
+  selectedBucket.classList.add('correct');
+  showFeedback(true);
+  
+  // Varied praise
+  const praises = ['Yes!', 'Good job!', 'Great!', 'Awesome!', 'Nice!', 'You got it!'];
+  const praise = praises[Math.floor(Math.random() * praises.length)];
+  setTimeout(() => speak(praise), 400);
+  
+  // P1-C: Slower timing (2.5s for correct)
+  setTimeout(() => {
+    currentIndex++;
+    isLocked = false;
+    showCurrentWord();
+  }, 2500);
+}
+
+function handleWrongAnswer(selectedBucket, correctBucket, current) {
+  selectedBucket.classList.add('wrong');
+  showFeedback(false);
+  
+  const anchorWord = current.type === 'short' ? 'apple' : 'cake';
+  
+  // P0-D: After 2 wrong attempts, give stronger hint
+  if (wrongAttempts >= 2) {
+    // Strong hint: highlight correct bucket and give explicit teaching
+    setTimeout(() => {
+      correctBucket.classList.add('hint-glow');
+      elements.bucketPrompt.textContent = `Try the ${anchorWord} bucket! 👆`;
+      
+      // P0-C: Better feedback - play sound comparison
+      speakSequence([
+        current.word,
+        anchorWord,
+        'They sound the same!'
+      ], 500, () => {
+        // Auto-advance after teaching moment
+        setTimeout(() => {
+          currentIndex++;
+          isLocked = false;
+          showCurrentWord();
+        }, 1500);
+      });
+    }, 600);
+  } else {
+    // P0-C: Play sound comparison
+    setTimeout(() => {
+      correctBucket.classList.add('highlight');
+      speakSequence([
+        current.word,
+        anchorWord, 
+        'Same sound!'
+      ], 500);
+    }, 600);
+    
+    // P1-C: Slower timing (4s for wrong)
+    setTimeout(() => {
+      currentIndex++;
+      isLocked = false;
+      showCurrentWord();
+    }, 4000);
+  }
+}
+
 function showFeedback(isCorrect) {
-  elements.feedbackIcon.textContent = isCorrect ? '✅' : '❌';
+  elements.feedbackIcon.textContent = isCorrect ? '✅' : '🔄';
   elements.feedbackIcon.className = `feedback-icon ${isCorrect ? 'correct' : 'wrong'}`;
   elements.feedbackOverlay.classList.remove('show');
   
-  // Force reflow to restart animation
   void elements.feedbackOverlay.offsetWidth;
   elements.feedbackOverlay.classList.add('show');
 }
 
-/**
- * End the game and show results
- */
+// ============================================
+// END GAME (P1-D: Voice-narrated)
+// ============================================
 function endGame() {
+  clearIdleTimer();
+  
   const percentage = (score / totalWords) * 100;
   
-  // Determine stars and message
-  let stars, title, message;
-  if (percentage >= 90) {
-    stars = '⭐⭐⭐';
-    title = 'Amazing! 🎉';
-    message = "You're a vowel sound superstar!";
-  } else if (percentage >= 70) {
-    stars = '⭐⭐';
-    title = 'Great Job! 🌟';
-    message = "You're learning your vowel sounds!";
-  } else if (percentage >= 50) {
-    stars = '⭐';
-    title = 'Good Try! 👍';
-    message = "Keep practicing, you're getting it!";
+  // Determine result
+  let title, message, voiceMessage;
+  if (percentage >= 80) {
+    title = '🎉 Amazing!';
+    message = "You're a sound superstar!";
+    voiceMessage = `Amazing! You got ${score} out of ${totalWords}! You're a superstar!`;
+  } else if (percentage >= 60) {
+    title = '🌟 Great Job!';
+    message = "You're learning your sounds!";
+    voiceMessage = `Great job! You got ${score} out of ${totalWords}!`;
+  } else if (percentage >= 40) {
+    title = '👍 Good Try!';
+    message = "Keep practicing!";
+    voiceMessage = `Good try! You got ${score}. Let's practice more!`;
   } else {
-    stars = '🌟';
-    title = 'Nice Effort! 💪';
-    message = "Let's try again and listen carefully!";
+    title = '💪 Nice Effort!';
+    message = "Let's try again!";
+    voiceMessage = `Nice try! Let's play again and listen carefully!`;
   }
   
   elements.endTitle.textContent = title;
-  elements.finalScore.textContent = score;
-  elements.starsEarned.textContent = stars;
   elements.endMessage.textContent = message;
   
-  // Save progress to localStorage
+  // Render final stars
+  elements.finalStars.innerHTML = '';
+  for (let i = 0; i < totalWords; i++) {
+    const star = document.createElement('span');
+    star.className = 'final-star';
+    star.textContent = i < score ? '⭐' : '☆';
+    star.style.animationDelay = `${i * 0.1}s`;
+    elements.finalStars.appendChild(star);
+  }
+  
+  // Save progress
   saveProgress();
   
   // Show end screen
   elements.endScreen.classList.add('show');
   
-  // Speak the result
-  speak(`${title.replace(/[^a-zA-Z ]/g, '')} You got ${score} out of ${totalWords}!`);
+  // P1-D: Voice narration
+  setTimeout(() => speak(voiceMessage), 300);
 }
 
-/**
- * Save progress to localStorage
- */
 function saveProgress() {
   const key = 'vowelSort_progress';
   let progress = JSON.parse(localStorage.getItem(key) || '{}');
@@ -317,70 +632,53 @@ function saveProgress() {
     progress.a.scores = progress.a.scores.slice(-20);
   }
   
-  // Check mastery (3 rounds of 8+/10)
+  // Check mastery (3 rounds of 80%+)
   const recentScores = progress.a.scores.slice(-5);
-  const highScores = recentScores.filter(s => s.score >= 8);
+  const highScores = recentScores.filter(s => (s.score / s.total) >= 0.8);
   if (highScores.length >= 3) {
     progress.a.mastered = true;
   }
   
+  progress.hasSeenTutorial = true;
+  
   localStorage.setItem(key, JSON.stringify(progress));
 }
 
-/**
- * Play bucket anchor word when tapped (without making a selection)
- */
-function playBucketAnchor(type) {
-  const word = type === 'short' ? 'apple' : 'cake';
-  speak(word);
-}
-
-// Event Listeners
+// ============================================
+// EVENT LISTENERS
+// ============================================
 elements.playWordBtn.addEventListener('click', () => {
+  clearIdleTimer();
   if (currentIndex < currentRound.length) {
-    speak(currentRound[currentIndex].word);
+    speak(currentRound[currentIndex].word, () => {
+      startIdleTimer();
+    });
   }
 });
 
-elements.shortBucket.addEventListener('click', () => handleBucketTap('short'));
-elements.longBucket.addEventListener('click', () => handleBucketTap('long'));
+// Bucket tap-to-hear (P0-B)
+elements.shortBucket.addEventListener('click', (e) => handleBucketTap('short', e));
+elements.longBucket.addEventListener('click', (e) => handleBucketTap('long', e));
 
-elements.playAgainBtn.addEventListener('click', startGame);
+elements.playAgainBtn.addEventListener('click', () => {
+  speak("Let's play again!");
+  setTimeout(startGame, 500);
+});
 
-// Long press on buckets plays the anchor sound (optional enhancement)
-let bucketPressTimer = null;
-
-function handleBucketLongPress(bucket, type) {
-  bucket.addEventListener('touchstart', (e) => {
-    bucketPressTimer = setTimeout(() => {
-      playBucketAnchor(type);
-      e.preventDefault();
-    }, 500);
-  });
-  
-  bucket.addEventListener('touchend', () => {
-    clearTimeout(bucketPressTimer);
-  });
-  
-  bucket.addEventListener('touchmove', () => {
-    clearTimeout(bucketPressTimer);
-  });
-}
-
-handleBucketLongPress(elements.shortBucket, 'short');
-handleBucketLongPress(elements.longBucket, 'long');
-
-// Initialize speech synthesis voices (some browsers need this)
+// Initialize speech synthesis voices
 if (speechSynth.onvoiceschanged !== undefined) {
-  speechSynth.onvoiceschanged = () => {
-    // Voices loaded
-  };
+  speechSynth.onvoiceschanged = () => {};
 }
 
-// Start the game when page loads
-document.addEventListener('DOMContentLoaded', startGame);
+// ============================================
+// INITIALIZE
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  initParentModal();
+  initTutorial();
+});
 
-// Also start immediately if DOM already ready
 if (document.readyState !== 'loading') {
-  startGame();
+  initParentModal();
+  initTutorial();
 }

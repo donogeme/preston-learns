@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Vowel Sound Sort 🍎🎂</title>
@@ -11,64 +11,182 @@
 </head>
 <body>
   <div class="app game-app">
-    <!-- Header with back button and score -->
-    <header class="game-header">
-      <a href="../../index.html" class="back-btn">← Back</a>
-      <div class="score-display">
-        <span class="star">⭐</span>
-        <span id="score">0</span>/<span id="total">10</span>
+    
+    <!-- ============================================ -->
+    <!-- ONBOARDING TUTORIAL (P0-A)                   -->
+    <!-- ============================================ -->
+    <div class="tutorial-overlay" id="tutorialOverlay">
+      <div class="tutorial-content">
+        
+        <!-- Screen 1: Welcome -->
+        <div class="tutorial-screen active" data-screen="1">
+          <div class="tutorial-character">🦊</div>
+          <h2>Let's Learn Sounds!</h2>
+          <p class="tutorial-text">Hi! I'm Finn the Fox. Let's play a listening game!</p>
+          <button class="tutorial-btn" id="tutorialNext1">Let's Go! 🎉</button>
+        </div>
+        
+        <!-- Screen 2: Teach Short A -->
+        <div class="tutorial-screen" data-screen="2">
+          <div class="tutorial-demo">
+            <div class="demo-bucket demo-apple" id="demoApple">
+              <span class="bucket-emoji">🍎</span>
+              <span class="bucket-label">apple</span>
+            </div>
+          </div>
+          <p class="tutorial-text">This is <strong>apple</strong>. Listen to the sound:</p>
+          <p class="tutorial-sound">"aaa" like in <strong>cat</strong> 🐱</p>
+          <button class="tutorial-btn" id="tutorialNext2">I Hear It! 👂</button>
+        </div>
+        
+        <!-- Screen 3: Teach Long A -->
+        <div class="tutorial-screen" data-screen="3">
+          <div class="tutorial-demo">
+            <div class="demo-bucket demo-cake" id="demoCake">
+              <span class="bucket-emoji">🎂</span>
+              <span class="bucket-label">cake</span>
+            </div>
+          </div>
+          <p class="tutorial-text">This is <strong>cake</strong>. Listen to the sound:</p>
+          <p class="tutorial-sound">"ay" like in <strong>rain</strong> 🌧️</p>
+          <button class="tutorial-btn" id="tutorialNext3">Got It! 👍</button>
+        </div>
+        
+        <!-- Screen 4: Practice intro -->
+        <div class="tutorial-screen" data-screen="4">
+          <div class="tutorial-buckets">
+            <div class="demo-bucket demo-apple mini">
+              <span class="bucket-emoji">🍎</span>
+            </div>
+            <div class="demo-bucket demo-cake mini">
+              <span class="bucket-emoji">🎂</span>
+            </div>
+          </div>
+          <p class="tutorial-text">Now <strong>you</strong> pick! Which bucket sounds the same?</p>
+          <p class="tutorial-hint">Tap a bucket to hear its word anytime!</p>
+          <button class="tutorial-btn" id="tutorialStart">Start Playing! 🎮</button>
+        </div>
+        
       </div>
+      
+      <!-- Skip button for returning players -->
+      <button class="tutorial-skip" id="tutorialSkip">Skip →</button>
+    </div>
+    
+    <!-- ============================================ -->
+    <!-- PARENT INFO MODAL (P1-F)                     -->
+    <!-- ============================================ -->
+    <div class="parent-modal" id="parentModal">
+      <div class="parent-content">
+        <button class="parent-close" id="parentClose">✕</button>
+        <h2>📚 For Parents</h2>
+        <div class="parent-section">
+          <h3>What This Teaches</h3>
+          <p>This game develops <strong>phonemic awareness</strong> — the ability to hear and distinguish vowel sounds in words.</p>
+          <p>Preston is learning to tell the difference between:</p>
+          <ul>
+            <li><strong>Short A</strong> (/ă/) — the "ah" sound in "cat", "hat", "map"</li>
+            <li><strong>Long A</strong> (/ā/) — the "ay" sound in "cake", "rain", "play"</li>
+          </ul>
+        </div>
+        <div class="parent-section">
+          <h3>How to Help</h3>
+          <ul>
+            <li>Tap the buckets together to compare sounds</li>
+            <li>Exaggerate the vowel: "c-AAA-t" vs "c-AY-ke"</li>
+            <li>No worries about wrong answers — that's learning!</li>
+            <li>First session is 5 words, then increases to 10</li>
+          </ul>
+        </div>
+        <button class="parent-done-btn" id="parentDone">Got It!</button>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- GAME HEADER                                  -->
+    <!-- ============================================ -->
+    <header class="game-header">
+      <a href="../../index.html" class="back-btn" aria-label="Go home">🏠</a>
+      <div class="score-display" id="scoreDisplay">
+        <!-- Visual stars instead of numbers (P1-B) -->
+        <div class="star-container" id="starContainer">
+          <!-- Stars injected by JS -->
+        </div>
+      </div>
+      <button class="info-btn" id="infoBtn" aria-label="Parent info">ℹ️</button>
     </header>
 
-    <!-- Main game area -->
-    <main class="game-area">
+    <!-- ============================================ -->
+    <!-- MAIN GAME AREA                               -->
+    <!-- ============================================ -->
+    <main class="game-area" id="gameArea">
       <!-- Current word display -->
       <div class="word-section">
-        <button class="play-word-btn" id="playWordBtn" aria-label="Play word">
+        <button class="play-word-btn pulsing" id="playWordBtn" aria-label="Play word">
           🔊
         </button>
-        <div class="current-word" id="currentWord">cat</div>
+        <!-- Minimized word text, enlarged emoji (P1-A) -->
         <div class="current-emoji" id="currentEmoji">🐱</div>
-        <p class="tap-hint">Tap 🔊 to hear the word again</p>
+        <div class="current-word" id="currentWord">cat</div>
       </div>
 
-      <!-- Bucket section -->
+      <!-- Bucket section with tap-to-hear (P0-B) -->
       <div class="bucket-section">
-        <p class="bucket-prompt">Sounds like...</p>
+        <p class="bucket-prompt" id="bucketPrompt">Which one sounds the same?</p>
         <div class="bucket-container">
-          <button class="vowel-bucket" id="shortBucket" data-type="short" aria-label="Sounds like apple">
+          <!-- Distinct colors: red for apple, golden for cake (P2-B) -->
+          <button class="vowel-bucket apple-bucket" id="shortBucket" data-type="short" aria-label="Tap to hear apple, or pick this bucket">
             <span class="bucket-emoji">🍎</span>
             <span class="bucket-label">apple</span>
+            <span class="tap-hint-icon">👆 tap me!</span>
           </button>
-          <button class="vowel-bucket" id="longBucket" data-type="long" aria-label="Sounds like cake">
+          <button class="vowel-bucket cake-bucket" id="longBucket" data-type="long" aria-label="Tap to hear cake, or pick this bucket">
             <span class="bucket-emoji">🎂</span>
             <span class="bucket-label">cake</span>
+            <span class="tap-hint-icon">👆 tap me!</span>
           </button>
         </div>
       </div>
     </main>
 
-    <!-- End screen overlay -->
+    <!-- ============================================ -->
+    <!-- END SCREEN                                   -->
+    <!-- ============================================ -->
     <div class="end-screen" id="endScreen">
       <div class="end-content">
+        <div class="end-character">🦊</div>
         <h2 id="endTitle">Great Job! 🎉</h2>
-        <div class="final-score">
-          <span class="big-star">⭐</span>
-          <span id="finalScore">8</span>/10
+        <div class="final-stars" id="finalStars">
+          <!-- Visual stars injected by JS -->
         </div>
-        <div class="stars-earned" id="starsEarned">⭐⭐⭐</div>
-        <p id="endMessage">You're learning your vowel sounds!</p>
+        <p id="endMessage">You're learning your sounds!</p>
         <div class="end-buttons">
-          <button class="play-again-btn" id="playAgainBtn">Play Again 🔄</button>
-          <a href="../../index.html" class="home-btn">Home 🏠</a>
+          <button class="play-again-btn" id="playAgainBtn">
+            <span>🔄</span>
+            <span>Play Again</span>
+          </button>
+          <a href="../../index.html" class="home-btn">
+            <span>🏠</span>
+            <span>Home</span>
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- Feedback overlay (brief flash) -->
+    <!-- ============================================ -->
+    <!-- FEEDBACK OVERLAY                             -->
+    <!-- ============================================ -->
     <div class="feedback-overlay" id="feedbackOverlay">
       <span class="feedback-icon" id="feedbackIcon">✅</span>
     </div>
+    
+    <!-- ============================================ -->
+    <!-- IDLE PROMPT (P2-F)                           -->
+    <!-- ============================================ -->
+    <div class="idle-prompt" id="idlePrompt">
+      <p>Tap the bucket that sounds the same! 👆</p>
+    </div>
+
   </div>
 
   <script src="game.js"></script>
