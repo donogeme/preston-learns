@@ -128,6 +128,437 @@ const wordPairs = {
 };
 
 // ============================================
+// PROGRESS TRACKER - Mastery & Spaced Repetition
+// ============================================
+const progressTracker = {
+  // Configuration
+  config: {
+    masteryThreshold: 0.85,           // 85% accuracy to master
+    minAttempts: 3,                   // Minimum tries before mastery possible
+    consecutiveCorrect: 3,            // OR 3 correct in a row = mastered
+    retentionWindow: 7 * 24 * 60 * 60 * 1000, // 7 days before review
+    storageKey: 'prestonLearns_magicE_progress'
+  },
+  
+  // Word tracking data
+  words: {},
+  
+  // Level tracking
+  currentLevel: 1,
+  levelsCompleted: [],
+  
+  // Load from localStorage
+  load() {
+    try {
+      const saved = localStorage.getItem(this.config.storageKey);
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.words = data.words || {};
+        this.currentLevel = data.currentLevel || 1;
+        this.levelsCompleted = data.levelsCompleted || [];
+      }
+    } catch (e) {
+      console.log('No saved progress found, starting fresh');
+    }
+  },
+  
+  // Save to localStorage
+  save() {
+    try {
+      localStorage.setItem(this.config.storageKey, JSON.stringify({
+        words: this.words,
+        currentLevel: this.currentLevel,
+        levelsCompleted: this.levelsCompleted,
+        lastSaved: Date.now()
+      }));
+    } catch (e) {
+      console.error('Failed to save progress:', e);
+    }
+  },
+  
+  // Record an attempt for a word
+  recordAttempt(word, correct) {
+    if (!this.words[word]) {
+      this.words[word] = {
+        attempts: 0,
+        correct: 0,
+        streak: 0,
+        lastSeen: Date.now(),
+        mastered: false,
+        masteredAt: null
+      };
+    }
+    
+    const w = this.words[word];
+    w.attempts++;
+    w.lastSeen = Date.now();
+    
+    if (correct) {
+      w.correct++;
+      w.streak++;
+      
+      // Check mastery conditions
+      if (!w.mastered) {
+        const accuracy = w.correct / w.attempts;
+        if ((w.attempts >= this.config.minAttempts && accuracy >= this.config.masteryThreshold) ||
+            w.streak >= this.config.consecutiveCorrect) {
+          w.mastered = true;
+          w.masteredAt = Date.now();
+        }
+      }
+    } else {
+      w.streak = 0;
+    }
+    
+    this.save();
+    return w;
+  },
+  
+  // Check if word is mastered
+  isMastered(word) {
+    return this.words[word]?.mastered || false;
+  },
+  
+  // Get words due for review (mastered but retention window passed)
+  getDueForReview() {
+    const now = Date.now();
+    return Object.entries(this.words)
+      .filter(([word, data]) => 
+        data.mastered && 
+        (now - data.lastSeen) > this.config.retentionWindow
+      )
+      .map(([word]) => word);
+  },
+  
+  // Get mastery stats for current level
+  getLevelStats(level) {
+    const levelWords = levels[level]?.words || [];
+    const allWords = [
+      ...levelWords.predict.map(p => p.cvce),
+      ...levelWords.sort.cvc.map(w => w.word),
+      ...levelWords.sort.cvce.map(w => w.word)
+    ];
+    
+    const mastered = allWords.filter(w => this.isMastered(w)).length;
+    const total = allWords.length;
+    const accuracy = allWords.reduce((sum, w) => {
+      const data = this.words[w];
+      if (data && data.attempts > 0) {
+        return sum + (data.correct / data.attempts);
+      }
+      return sum;
+    }, 0) / total;
+    
+    return { mastered, total, accuracy, percentage: (mastered / total) * 100 };
+  },
+  
+  // Check if level is complete (ready to advance)
+  isLevelComplete(level) {
+    const stats = this.getLevelStats(level);
+    const levelConfig = levels[level];
+    return stats.mastered >= levelConfig.unlockCriteria.masteredWords &&
+           stats.accuracy >= levelConfig.unlockCriteria.accuracy;
+  },
+  
+  // Advance to next level
+  advanceLevel() {
+    if (!this.levelsCompleted.includes(this.currentLevel)) {
+      this.levelsCompleted.push(this.currentLevel);
+    }
+    if (levels[this.currentLevel + 1]) {
+      this.currentLevel++;
+      this.save();
+      return true;
+    }
+    return false; // No more levels
+  },
+  
+  // Get overall stats
+  getOverallStats() {
+    const allWords = Object.keys(this.words);
+    const mastered = allWords.filter(w => this.isMastered(w)).length;
+    const totalAttempts = allWords.reduce((sum, w) => sum + this.words[w].attempts, 0);
+    const totalCorrect = allWords.reduce((sum, w) => sum + this.words[w].correct, 0);
+    
+    return {
+      wordsEncountered: allWords.length,
+      wordsMastered: mastered,
+      totalAttempts,
+      totalCorrect,
+      overallAccuracy: totalAttempts > 0 ? (totalCorrect / totalAttempts) : 0,
+      currentLevel: this.currentLevel,
+      levelsCompleted: this.levelsCompleted.length
+    };
+  }
+};
+
+// ============================================
+// LEVEL DEFINITIONS
+// ============================================
+const levels = {
+  // Level 1: Magic E with A vowel only
+  1: {
+    name: "Magic E - Letter A",
+    description: "Learn how Magic E changes the A sound",
+    vowelFocus: 'a',
+    words: {
+      demo: [
+        { cvc: 'cap', cvce: 'cape', emojiCvc: '🧢', emojiCvce: '🦸' },
+        { cvc: 'tap', cvce: 'tape', emojiCvc: '🚰', emojiCvce: '📼' },
+        { cvc: 'hat', cvce: 'hate', emojiCvc: '🎩', emojiCvce: '😠' }
+      ],
+      predict: [
+        { cvc: 'mat', cvce: 'mate', emojiCvc: '🧘', emojiCvce: '👫' },
+        { cvc: 'can', cvce: 'cane', emojiCvc: '🥫', emojiCvce: '🦯' },
+        { cvc: 'pan', cvce: 'pane', emojiCvc: '🍳', emojiCvce: '🪟' },
+        { cvc: 'man', cvce: 'mane', emojiCvc: '🧑', emojiCvce: '🦁' },
+        { cvc: 'rat', cvce: 'rate', emojiCvc: '🐀', emojiCvce: '⭐' },
+        { cvc: 'mad', cvce: 'made', emojiCvc: '😡', emojiCvce: '🛠️' }
+      ],
+      sort: {
+        cvc: [
+          { word: 'cat', emoji: '🐱' },
+          { word: 'bat', emoji: '🦇' },
+          { word: 'map', emoji: '🗺️' },
+          { word: 'nap', emoji: '😴' },
+          { word: 'bag', emoji: '👜' },
+          { word: 'sad', emoji: '😢' },
+          { word: 'dad', emoji: '👨' },
+          { word: 'van', emoji: '🚐' },
+          { word: 'rat', emoji: '🐀' },
+          { word: 'pan', emoji: '🍳' }
+        ],
+        cvce: [
+          { word: 'cake', emoji: '🎂' },
+          { word: 'lake', emoji: '🏞️' },
+          { word: 'bake', emoji: '🧁' },
+          { word: 'name', emoji: '📛' },
+          { word: 'game', emoji: '🎮' },
+          { word: 'cape', emoji: '🦸' },
+          { word: 'tape', emoji: '📼' },
+          { word: 'make', emoji: '🔨' },
+          { word: 'race', emoji: '🏎️' },
+          { word: 'face', emoji: '😊' },
+          { word: 'wave', emoji: '🌊' },
+          { word: 'save', emoji: '💾' }
+        ]
+      }
+    },
+    unlockCriteria: { masteredWords: 12, accuracy: 0.80 },
+    vowelSound: 'ay'
+  },
+  
+  // Level 2: Magic E with I vowel
+  2: {
+    name: "Magic E - Letter I",
+    description: "Learn how Magic E changes the I sound",
+    vowelFocus: 'i',
+    words: {
+      demo: [
+        { cvc: 'kit', cvce: 'kite', emojiCvc: '🧰', emojiCvce: '🪁' },
+        { cvc: 'pin', cvce: 'pine', emojiCvc: '📌', emojiCvce: '🌲' },
+        { cvc: 'hid', cvce: 'hide', emojiCvc: '👀', emojiCvce: '🙈' }
+      ],
+      predict: [
+        { cvc: 'bit', cvce: 'bite', emojiCvc: '💾', emojiCvce: '🦷' },
+        { cvc: 'dim', cvce: 'dime', emojiCvc: '🌑', emojiCvce: '🪙' },
+        { cvc: 'fin', cvce: 'fine', emojiCvc: '🦈', emojiCvce: '👌' },
+        { cvc: 'rid', cvce: 'ride', emojiCvc: '🚮', emojiCvce: '🚴' },
+        { cvc: 'win', cvce: 'wine', emojiCvc: '🏆', emojiCvce: '🍷' },
+        { cvc: 'tim', cvce: 'time', emojiCvc: '👦', emojiCvce: '⏰' }
+      ],
+      sort: {
+        cvc: [
+          { word: 'kit', emoji: '🧰' },
+          { word: 'pin', emoji: '📌' },
+          { word: 'bit', emoji: '💾' },
+          { word: 'hid', emoji: '👀' },
+          { word: 'fit', emoji: '💪' },
+          { word: 'sit', emoji: '🪑' },
+          { word: 'dig', emoji: '⛏️' },
+          { word: 'big', emoji: '🐘' },
+          { word: 'pig', emoji: '🐷' },
+          { word: 'wig', emoji: '💇' }
+        ],
+        cvce: [
+          { word: 'kite', emoji: '🪁' },
+          { word: 'pine', emoji: '🌲' },
+          { word: 'hide', emoji: '🙈' },
+          { word: 'bite', emoji: '🦷' },
+          { word: 'dime', emoji: '🪙' },
+          { word: 'time', emoji: '⏰' },
+          { word: 'ride', emoji: '🚴' },
+          { word: 'bike', emoji: '🚲' },
+          { word: 'fire', emoji: '🔥' },
+          { word: 'wine', emoji: '🍷' },
+          { word: 'line', emoji: '📏' },
+          { word: 'nine', emoji: '9️⃣' }
+        ]
+      }
+    },
+    unlockCriteria: { masteredWords: 12, accuracy: 0.80 },
+    vowelSound: 'eye'
+  },
+  
+  // Level 3: Magic E with O vowel
+  3: {
+    name: "Magic E - Letter O",
+    description: "Learn how Magic E changes the O sound",
+    vowelFocus: 'o',
+    words: {
+      demo: [
+        { cvc: 'hop', cvce: 'hope', emojiCvc: '🐰', emojiCvce: '🙏' },
+        { cvc: 'rob', cvce: 'robe', emojiCvc: '🦹', emojiCvce: '👘' },
+        { cvc: 'not', cvce: 'note', emojiCvc: '🚫', emojiCvce: '📝' }
+      ],
+      predict: [
+        { cvc: 'mop', cvce: 'mope', emojiCvc: '🧹', emojiCvce: '😔' },
+        { cvc: 'cod', cvce: 'code', emojiCvc: '🐟', emojiCvce: '💻' },
+        { cvc: 'rod', cvce: 'rode', emojiCvc: '🎣', emojiCvce: '🐎' },
+        { cvc: 'ton', cvce: 'tone', emojiCvc: '⚖️', emojiCvce: '🎵' },
+        { cvc: 'con', cvce: 'cone', emojiCvc: '🎪', emojiCvce: '🍦' },
+        { cvc: 'bon', cvce: 'bone', emojiCvc: '🎀', emojiCvce: '🦴' }
+      ],
+      sort: {
+        cvc: [
+          { word: 'hop', emoji: '🐰' },
+          { word: 'mop', emoji: '🧹' },
+          { word: 'hot', emoji: '🔥' },
+          { word: 'pot', emoji: '🍯' },
+          { word: 'dog', emoji: '🐕' },
+          { word: 'log', emoji: '🪵' },
+          { word: 'fog', emoji: '🌫️' },
+          { word: 'jog', emoji: '🏃' },
+          { word: 'cot', emoji: '🛏️' },
+          { word: 'dot', emoji: '⚫' }
+        ],
+        cvce: [
+          { word: 'hope', emoji: '🙏' },
+          { word: 'robe', emoji: '👘' },
+          { word: 'note', emoji: '📝' },
+          { word: 'home', emoji: '🏠' },
+          { word: 'bone', emoji: '🦴' },
+          { word: 'cone', emoji: '🍦' },
+          { word: 'rose', emoji: '🌹' },
+          { word: 'nose', emoji: '👃' },
+          { word: 'code', emoji: '💻' },
+          { word: 'rode', emoji: '🐎' },
+          { word: 'tone', emoji: '🎵' },
+          { word: 'pole', emoji: '🎿' }
+        ]
+      }
+    },
+    unlockCriteria: { masteredWords: 12, accuracy: 0.80 },
+    vowelSound: 'oh'
+  },
+  
+  // Level 4: Magic E with U vowel
+  4: {
+    name: "Magic E - Letter U",
+    description: "Learn how Magic E changes the U sound",
+    vowelFocus: 'u',
+    words: {
+      demo: [
+        { cvc: 'tub', cvce: 'tube', emojiCvc: '🛁', emojiCvce: '📺' },
+        { cvc: 'cub', cvce: 'cube', emojiCvc: '🐻', emojiCvce: '🧊' },
+        { cvc: 'cut', cvce: 'cute', emojiCvc: '✂️', emojiCvce: '🥰' }
+      ],
+      predict: [
+        { cvc: 'hug', cvce: 'huge', emojiCvc: '🤗', emojiCvce: '🦣' },
+        { cvc: 'us', cvce: 'use', emojiCvc: '👥', emojiCvce: '🔧' },
+        { cvc: 'dud', cvce: 'dude', emojiCvc: '💣', emojiCvce: '😎' },
+        { cvc: 'rud', cvce: 'rude', emojiCvc: '😤', emojiCvce: '🙄' },
+        { cvc: 'fus', cvce: 'fuse', emojiCvc: '😤', emojiCvce: '💥' },
+        { cvc: 'mul', cvce: 'mule', emojiCvc: '✖️', emojiCvce: '🫏' }
+      ],
+      sort: {
+        cvc: [
+          { word: 'tub', emoji: '🛁' },
+          { word: 'cub', emoji: '🐻' },
+          { word: 'cut', emoji: '✂️' },
+          { word: 'bug', emoji: '🐛' },
+          { word: 'rug', emoji: '🟫' },
+          { word: 'sun', emoji: '☀️' },
+          { word: 'run', emoji: '🏃' },
+          { word: 'fun', emoji: '🎉' },
+          { word: 'bus', emoji: '🚌' },
+          { word: 'hut', emoji: '🛖' }
+        ],
+        cvce: [
+          { word: 'tube', emoji: '📺' },
+          { word: 'cube', emoji: '🧊' },
+          { word: 'cute', emoji: '🥰' },
+          { word: 'huge', emoji: '🦣' },
+          { word: 'fuse', emoji: '💥' },
+          { word: 'mule', emoji: '🫏' },
+          { word: 'dune', emoji: '🏜️' },
+          { word: 'tune', emoji: '🎶' },
+          { word: 'rule', emoji: '📏' },
+          { word: 'June', emoji: '📅' }
+        ]
+      }
+    },
+    unlockCriteria: { masteredWords: 10, accuracy: 0.80 },
+    vowelSound: 'you'
+  },
+  
+  // Level 5: Mixed Review - All Vowels
+  5: {
+    name: "Magic E Master",
+    description: "Mix all vowels together!",
+    vowelFocus: 'mixed',
+    words: {
+      demo: [
+        { cvc: 'cap', cvce: 'cape', emojiCvc: '🧢', emojiCvce: '🦸' },
+        { cvc: 'kit', cvce: 'kite', emojiCvc: '🧰', emojiCvce: '🪁' },
+        { cvc: 'hop', cvce: 'hope', emojiCvc: '🐰', emojiCvce: '🙏' }
+      ],
+      predict: [
+        // Mix of all vowels
+        { cvc: 'mad', cvce: 'made', emojiCvc: '😡', emojiCvce: '🛠️' },
+        { cvc: 'bit', cvce: 'bite', emojiCvc: '💾', emojiCvce: '🦷' },
+        { cvc: 'not', cvce: 'note', emojiCvc: '🚫', emojiCvce: '📝' },
+        { cvc: 'cut', cvce: 'cute', emojiCvc: '✂️', emojiCvce: '🥰' },
+        { cvc: 'pin', cvce: 'pine', emojiCvc: '📌', emojiCvce: '🌲' },
+        { cvc: 'rob', cvce: 'robe', emojiCvc: '🦹', emojiCvce: '👘' }
+      ],
+      sort: {
+        cvc: [
+          // A
+          { word: 'cat', emoji: '🐱' },
+          { word: 'map', emoji: '🗺️' },
+          // I
+          { word: 'sit', emoji: '🪑' },
+          { word: 'big', emoji: '🐘' },
+          // O
+          { word: 'hot', emoji: '🔥' },
+          { word: 'dog', emoji: '🐕' },
+          // U
+          { word: 'sun', emoji: '☀️' },
+          { word: 'bug', emoji: '🐛' }
+        ],
+        cvce: [
+          // A
+          { word: 'cake', emoji: '🎂' },
+          { word: 'wave', emoji: '🌊' },
+          // I
+          { word: 'bike', emoji: '🚲' },
+          { word: 'fire', emoji: '🔥' },
+          // O
+          { word: 'home', emoji: '🏠' },
+          { word: 'nose', emoji: '👃' },
+          // U
+          { word: 'cube', emoji: '🧊' },
+          { word: 'tune', emoji: '🎶' }
+        ]
+      }
+    },
+    unlockCriteria: { masteredWords: 12, accuracy: 0.85 },
+    vowelSound: 'mixed'
+  }
+};
+
+// ============================================
 // GAME STATE
 // ============================================
 const state = {
@@ -137,9 +568,16 @@ const state = {
   sortIndex: 0,
   sortRound: [],
   score: 0,
-  totalSortWords: 6,
-  isLocked: false
+  totalSortWords: 8,
+  isLocked: false,
+  currentLevelData: null,
+  showingLevelSelect: false
 };
+
+// Get current level's word data
+function getCurrentLevelWords() {
+  return levels[progressTracker.currentLevel]?.words || wordPairs;
+}
 
 // ============================================
 // DOM ELEMENTS
@@ -297,7 +735,8 @@ function showDiscoverStep(stepName) {
 }
 
 function runDemoSequence(demoNum) {
-  const pair = wordPairs.demo[demoNum - 1];
+  const levelWords = getCurrentLevelWords();
+  const pair = levelWords.demo[demoNum - 1];
   const step = document.querySelector(`[data-step="demo${demoNum}"]`);
   const magicE = step.querySelector('.magic-e');
   const wand = document.getElementById(`addMagicE${demoNum}`);
@@ -339,10 +778,12 @@ function runDemoSequence(demoNum) {
       emoji.textContent = pair.emojiCvce;
       
       // Speak explanation
-      const vowelSound = "ay";
+      const level = levels[progressTracker.currentLevel];
+      const vowelSound = level?.vowelSound || 'ay';
+      const vowelLetter = level?.vowelFocus?.toUpperCase() || 'A';
       speakSequence([
         pair.cvce,
-        `The E made the A say its name: ${vowelSound}!`
+        `The E made the ${vowelLetter} say its name: ${vowelSound}!`
       ], 400, () => {
         instruction.innerHTML = `<strong>${pair.cvc}</strong> became <strong>${pair.cvce}</strong>!`;
         nextBtn.classList.remove('hidden');
@@ -357,11 +798,14 @@ function runDemoSequence(demoNum) {
       setTimeout(() => runDemoSequence(demoNum + 1), 300);
     } else {
       showDiscoverStep('summary');
+      const level = levels[progressTracker.currentLevel];
+      const vowelSound = level?.vowelSound || 'ay';
+      const vowelLetter = level?.vowelFocus?.toUpperCase() || 'A';
       setTimeout(() => {
         speakSequence([
           "The Magic E Rule!",
           "When we add E to the end,",
-          "The A says its name: AY!"
+          `The ${vowelLetter} says its name: ${vowelSound}!`
         ], 600);
       }, 300);
     }
@@ -379,10 +823,11 @@ function initPredict() {
 }
 
 function renderPredictProgress() {
+  const levelWords = getCurrentLevelWords();
   const container = elements.predictProgress;
   container.innerHTML = '';
   
-  for (let i = 0; i < wordPairs.predict.length; i++) {
+  for (let i = 0; i < levelWords.predict.length; i++) {
     const dot = document.createElement('span');
     dot.className = 'progress-dot';
     if (i < state.predictIndex) dot.classList.add('done');
@@ -392,7 +837,8 @@ function renderPredictProgress() {
 }
 
 function showPredictWord() {
-  if (state.predictIndex >= wordPairs.predict.length) {
+  const levelWords = getCurrentLevelWords();
+  if (state.predictIndex >= levelWords.predict.length) {
     // Done with predict phase
     setTimeout(() => {
       speakSequence(["Great job!", "Now let's find the Magic E words!"], 400, () => {
@@ -402,7 +848,7 @@ function showPredictWord() {
     return;
   }
   
-  const pair = wordPairs.predict[state.predictIndex];
+  const pair = levelWords.predict[state.predictIndex];
   
   // Build word display with individual letters
   elements.predictWord.innerHTML = '';
@@ -431,7 +877,8 @@ function showPredictWord() {
 }
 
 function handlePredictAddE() {
-  const pair = wordPairs.predict[state.predictIndex];
+  const levelWords = getCurrentLevelWords();
+  const pair = levelWords.predict[state.predictIndex];
   const magicE = elements.predictWord.querySelector('.magic-e');
   const vowel = elements.predictWord.querySelector('.vowel');
   
@@ -473,13 +920,14 @@ function handlePredictNext() {
 // PHASE 3: SORT (You Do)
 // ============================================
 function initSort() {
+  const levelWords = getCurrentLevelWords();
   state.sortIndex = 0;
   state.score = 0;
   
   // Build mixed round: half CVC, half CVCe
   const halfCount = Math.ceil(state.totalSortWords / 2);
-  const cvcWords = shuffle(wordPairs.sort.cvc).slice(0, halfCount).map(w => ({ ...w, type: 'cvc' }));
-  const cvceWords = shuffle(wordPairs.sort.cvce).slice(0, state.totalSortWords - halfCount).map(w => ({ ...w, type: 'cvce' }));
+  const cvcWords = shuffle(levelWords.sort.cvc).slice(0, halfCount).map(w => ({ ...w, type: 'cvc' }));
+  const cvceWords = shuffle(levelWords.sort.cvce).slice(0, state.totalSortWords - halfCount).map(w => ({ ...w, type: 'cvce' }));
   state.sortRound = shuffle([...cvcWords, ...cvceWords]);
   
   showPhase('sort');
@@ -534,6 +982,9 @@ function handleSortBucket(selectedType) {
   const isCorrect = (selectedType === 'cvce' && word.type === 'cvce') || 
                    (selectedType === 'cvc' && word.type === 'cvc');
   
+  // Track progress
+  progressTracker.recordAttempt(word.word, isCorrect);
+  
   const selectedBucket = selectedType === 'cvce' ? elements.bucketYes : elements.bucketNo;
   const correctBucket = word.type === 'cvce' ? elements.bucketYes : elements.bucketNo;
   
@@ -559,8 +1010,10 @@ function handleSortBucket(selectedType) {
       correctBucket.classList.add('highlight');
       
       const hasMagicE = word.type === 'cvce';
+      const level = levels[progressTracker.currentLevel];
+      const vowelSound = level?.vowelSound || 'ay';
       const explanation = hasMagicE 
-        ? `${word.word} has Magic E! Hear the AY sound?`
+        ? `${word.word} has Magic E! Hear the ${vowelSound} sound?`
         : `${word.word} doesn't have Magic E.`;
       
       speak(explanation, () => {
@@ -581,15 +1034,24 @@ function endGame() {
   showPhase('end');
   
   const percentage = (state.score / state.totalSortWords) * 100;
+  const stats = progressTracker.getOverallStats();
+  const levelStats = progressTracker.getLevelStats(progressTracker.currentLevel);
+  const canAdvance = progressTracker.isLevelComplete(progressTracker.currentLevel);
+  const level = levels[progressTracker.currentLevel];
+  
   let title, message, voiceMessage;
   
   if (percentage >= 80) {
     title = 'Amazing! 🎉';
-    message = "You're a Magic E expert!";
-    voiceMessage = `Amazing! You got ${state.score} out of ${state.totalSortWords}! You're a Magic E expert!`;
+    message = canAdvance && levels[progressTracker.currentLevel + 1]
+      ? `You're ready for ${levels[progressTracker.currentLevel + 1].name}!`
+      : "You're a Magic E expert!";
+    voiceMessage = `Amazing! You got ${state.score} out of ${state.totalSortWords}! ${
+      canAdvance ? "You're ready for the next level!" : "You're a Magic E expert!"
+    }`;
   } else if (percentage >= 60) {
     title = 'Great Job! 🌟';
-    message = "You're learning the Magic E!";
+    message = `Level ${progressTracker.currentLevel}: ${Math.round(levelStats.percentage)}% mastered`;
     voiceMessage = `Great job! You got ${state.score}! Keep practicing!`;
   } else {
     title = 'Good Try! 👍';
@@ -608,6 +1070,31 @@ function endGame() {
     star.textContent = i < state.score ? '⭐' : '☆';
     star.style.animationDelay = `${i * 0.1}s`;
     elements.finalStars.appendChild(star);
+  }
+  
+  // Show level info
+  const levelInfo = document.createElement('div');
+  levelInfo.className = 'level-info';
+  levelInfo.innerHTML = `
+    <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+      📊 Level ${progressTracker.currentLevel}: ${level.name}<br>
+      ✅ ${stats.wordsMastered} words mastered overall
+    </p>
+  `;
+  elements.finalStars.after(levelInfo);
+  
+  // Show next level button if ready
+  if (canAdvance && levels[progressTracker.currentLevel + 1]) {
+    const nextLevelBtn = document.createElement('button');
+    nextLevelBtn.className = 'btn btn-primary';
+    nextLevelBtn.style.marginTop = '1rem';
+    nextLevelBtn.innerHTML = `🚀 Try ${levels[progressTracker.currentLevel + 1].name}`;
+    nextLevelBtn.onclick = () => {
+      progressTracker.advanceLevel();
+      speak(`Great! Let's learn Magic E with the letter ${levels[progressTracker.currentLevel].vowelFocus.toUpperCase()}!`);
+      setTimeout(initDiscover, 500);
+    };
+    levelInfo.appendChild(nextLevelBtn);
   }
   
   setTimeout(() => speak(voiceMessage), 300);
@@ -647,6 +1134,8 @@ elements.bucketNo.addEventListener('click', () => handleSortBucket('cvc'));
 elements.bucketYes.addEventListener('click', () => handleSortBucket('cvce'));
 
 elements.playAgain.addEventListener('click', () => {
+  // Clean up level info from end screen
+  document.querySelectorAll('.level-info').forEach(el => el.remove());
   speak("Let's learn Magic E again!");
   setTimeout(initDiscover, 500);
 });
@@ -666,5 +1155,15 @@ if (speechSynth.onvoiceschanged !== undefined) {
 // ============================================
 // INITIALIZE
 // ============================================
-document.addEventListener('DOMContentLoaded', initDiscover);
-if (document.readyState !== 'loading') initDiscover();
+// Load saved progress
+progressTracker.load();
+
+// Start the game
+function startGame() {
+  // Remove any lingering level info from previous sessions
+  document.querySelectorAll('.level-info').forEach(el => el.remove());
+  initDiscover();
+}
+
+document.addEventListener('DOMContentLoaded', startGame);
+if (document.readyState !== 'loading') startGame();
