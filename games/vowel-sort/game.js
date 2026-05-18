@@ -16,24 +16,42 @@
 // WORD DATA - Minimal pairs for Magic E
 // ============================================
 const wordPairs = {
-  // Demo words (Phase 1)
+  // Demo words (Phase 1) - A vowel
   demo: [
     { cvc: 'cap', cvce: 'cape', emojiCvc: '🧢', emojiCvce: '🦸' },
     { cvc: 'tap', cvce: 'tape', emojiCvc: '🚰', emojiCvce: '📼' },
     { cvc: 'hat', cvce: 'hate', emojiCvc: '🎩', emojiCvce: '😠' }
   ],
   
-  // Predict words (Phase 2) - Child adds the E
+  // Predict words (Phase 2) - Child adds the E - EXPANDED
   predict: [
     { cvc: 'mat', cvce: 'mate', emojiCvc: '🧘', emojiCvce: '👫' },
     { cvc: 'can', cvce: 'cane', emojiCvc: '🥫', emojiCvce: '🦯' },
     { cvc: 'pan', cvce: 'pane', emojiCvc: '🍳', emojiCvce: '🪟' },
-    { cvc: 'man', cvce: 'mane', emojiCvc: '🧑', emojiCvce: '🦁' }
+    { cvc: 'man', cvce: 'mane', emojiCvc: '🧑', emojiCvce: '🦁' },
+    { cvc: 'rat', cvce: 'rate', emojiCvc: '🐀', emojiCvce: '⭐' },
+    { cvc: 'mad', cvce: 'made', emojiCvc: '😡', emojiCvce: '🛠️' },
+    // I vowel
+    { cvc: 'kit', cvce: 'kite', emojiCvc: '🧰', emojiCvce: '🪁' },
+    { cvc: 'pin', cvce: 'pine', emojiCvc: '📌', emojiCvce: '🌲' },
+    { cvc: 'hid', cvce: 'hide', emojiCvc: '👀', emojiCvce: '🙈' },
+    { cvc: 'bit', cvce: 'bite', emojiCvc: '💾', emojiCvce: '🦷' },
+    { cvc: 'dim', cvce: 'dime', emojiCvc: '🌑', emojiCvce: '🪙' },
+    // O vowel
+    { cvc: 'hop', cvce: 'hope', emojiCvc: '🐰', emojiCvce: '🙏' },
+    { cvc: 'rob', cvce: 'robe', emojiCvc: '🦹', emojiCvce: '👘' },
+    { cvc: 'not', cvce: 'note', emojiCvc: '🚫', emojiCvce: '📝' },
+    { cvc: 'mop', cvce: 'mope', emojiCvc: '🧹', emojiCvce: '😔' },
+    // U vowel
+    { cvc: 'tub', cvce: 'tube', emojiCvc: '🛁', emojiCvce: '📺' },
+    { cvc: 'cub', cvce: 'cube', emojiCvc: '🐻', emojiCvce: '🧊' },
+    { cvc: 'cut', cvce: 'cute', emojiCvc: '✂️', emojiCvce: '🥰' }
   ],
   
-  // Sort words (Phase 3) - Mix of CVC and CVCe
+  // Sort words (Phase 3) - Mix of CVC and CVCe - EXPANDED
   sort: {
     cvc: [
+      // A words
       { word: 'cat', emoji: '🐱' },
       { word: 'bat', emoji: '🦇' },
       { word: 'map', emoji: '🗺️' },
@@ -41,9 +59,33 @@ const wordPairs = {
       { word: 'bag', emoji: '👜' },
       { word: 'sad', emoji: '😢' },
       { word: 'dad', emoji: '👨' },
-      { word: 'van', emoji: '🚐' }
+      { word: 'van', emoji: '🚐' },
+      { word: 'rat', emoji: '🐀' },
+      { word: 'pan', emoji: '🍳' },
+      // I words
+      { word: 'kit', emoji: '🧰' },
+      { word: 'pin', emoji: '📌' },
+      { word: 'bit', emoji: '💾' },
+      { word: 'hid', emoji: '👀' },
+      { word: 'fit', emoji: '💪' },
+      { word: 'sit', emoji: '🪑' },
+      // O words
+      { word: 'hop', emoji: '🐰' },
+      { word: 'mop', emoji: '🧹' },
+      { word: 'hot', emoji: '🔥' },
+      { word: 'pot', emoji: '🍯' },
+      { word: 'dog', emoji: '🐕' },
+      { word: 'log', emoji: '🪵' },
+      // U words
+      { word: 'tub', emoji: '🛁' },
+      { word: 'cub', emoji: '🐻' },
+      { word: 'cut', emoji: '✂️' },
+      { word: 'bug', emoji: '🐛' },
+      { word: 'rug', emoji: '🟫' },
+      { word: 'sun', emoji: '☀️' }
     ],
     cvce: [
+      // A words
       { word: 'cake', emoji: '🎂' },
       { word: 'lake', emoji: '🏞️' },
       { word: 'bake', emoji: '🧁' },
@@ -51,7 +93,36 @@ const wordPairs = {
       { word: 'game', emoji: '🎮' },
       { word: 'cape', emoji: '🦸' },
       { word: 'tape', emoji: '📼' },
-      { word: 'make', emoji: '🔨' }
+      { word: 'make', emoji: '🔨' },
+      { word: 'race', emoji: '🏎️' },
+      { word: 'face', emoji: '😊' },
+      { word: 'wave', emoji: '🌊' },
+      { word: 'save', emoji: '💾' },
+      // I words
+      { word: 'kite', emoji: '🪁' },
+      { word: 'pine', emoji: '🌲' },
+      { word: 'hide', emoji: '🙈' },
+      { word: 'bite', emoji: '🦷' },
+      { word: 'dime', emoji: '🪙' },
+      { word: 'time', emoji: '⏰' },
+      { word: 'ride', emoji: '🚴' },
+      { word: 'bike', emoji: '🚲' },
+      { word: 'fire', emoji: '🔥' },
+      // O words
+      { word: 'hope', emoji: '🙏' },
+      { word: 'robe', emoji: '👘' },
+      { word: 'note', emoji: '📝' },
+      { word: 'home', emoji: '🏠' },
+      { word: 'bone', emoji: '🦴' },
+      { word: 'cone', emoji: '🍦' },
+      { word: 'rose', emoji: '🌹' },
+      { word: 'nose', emoji: '👃' },
+      // U words
+      { word: 'tube', emoji: '📺' },
+      { word: 'cube', emoji: '🧊' },
+      { word: 'cute', emoji: '🥰' },
+      { word: 'huge', emoji: '🦣' },
+      { word: 'fuse', emoji: '💥' }
     ]
   }
 };
