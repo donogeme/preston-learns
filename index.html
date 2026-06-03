@@ -100,6 +100,12 @@
           <p id="card-mittens-desc">Learn what cats can eat!</p>
         </a>
 
+        <a href="#" class="story-card" id="card-baseball">
+          <div class="emoji">⚾🏏🏃</div>
+          <h3 id="card-baseball-title">Baseball Adventure</h3>
+          <p id="card-baseball-desc">Learn baseball words in Cantonese!</p>
+        </a>
+
         <a href="games/vowel-sort/index.html" class="story-card">
           <div class="emoji">🪄✨</div>
           <h3>Magic E Adventure</h3>
@@ -119,7 +125,8 @@
           fruit: { title: "嫲嫲's Fruit Stand", desc: "Learn fruit names in Cantonese!", href: "stories/fruit-stand/index.html?mode=preston" },
           firetruck: { title: "Firetruck Rescue", desc: "Count and learn Cantonese!", href: "stories/firetruck/index.html?mode=preston" },
           garbage: { title: "Garbage Truck Day", desc: "Math + Cantonese!", href: "stories/garbage-truck/index.html?mode=preston" },
-          mittens: { title: "Feeding Mittens", desc: "Learn what cats can eat!", href: "stories/feeding-mittens/index.html?mode=preston" }
+          mittens: { title: "Feeding Mittens", desc: "Learn what cats can eat!", href: "stories/feeding-mittens/index.html?mode=preston" },
+          baseball: { title: "Baseball Adventure", desc: "Baseball words in Cantonese!", href: "stories/baseball/index.html?mode=preston" }
         }
       },
       grandparents: {
@@ -130,7 +137,8 @@
           fruit: { title: "生果檔", desc: "學生果嘅英文!", href: "stories/fruit-stand/index.html?mode=grandparents" },
           firetruck: { title: "消防車救援", desc: "數數同學英文!", href: "stories/firetruck/index.html?mode=grandparents" },
           garbage: { title: "垃圾車日", desc: "數學同英文!", href: "stories/garbage-truck/index.html?mode=grandparents" },
-          mittens: { title: "餵貓仔", desc: "學貓可以食咩!", href: "stories/feeding-mittens/index.html?mode=grandparents" }
+          mittens: { title: "餵貓仔", desc: "學貓可以食咩!", href: "stories/feeding-mittens/index.html?mode=grandparents" },
+          baseball: { title: "棒球大冒險", desc: "學棒球英文!", href: "stories/baseball/index.html?mode=grandparents" }
         }
       }
     };
@@ -164,6 +172,10 @@
       document.getElementById('card-mittens-title').textContent = m.cards.mittens.title;
       document.getElementById('card-mittens-desc').textContent = m.cards.mittens.desc;
       document.getElementById('card-mittens').href = m.cards.mittens.href;
+      
+      document.getElementById('card-baseball-title').textContent = m.cards.baseball.title;
+      document.getElementById('card-baseball-desc').textContent = m.cards.baseball.desc;
+      document.getElementById('card-baseball').href = m.cards.baseball.href;
       
       // Show story cards
       document.getElementById('story-cards').style.display = 'flex';
