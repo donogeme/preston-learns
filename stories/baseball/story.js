@@ -1,31 +1,32 @@
 // Baseball Adventure - Story Data and Logic
-// Bilingual: Preston learns Cantonese, Grandparents learn English
+// Bilingual: Preston learns Cantonese, Grandparents learn English, Spanish speakers learn Cantonese
 
 const urlParams = new URLSearchParams(window.location.search);
 const mode = urlParams.get('mode') || 'preston';
 const isGrandparents = mode === 'grandparents';
+const isSpanish = mode === 'spanish';
 
 const vocab = {
-  baseball:  { english: 'Baseball',  chinese: '棒球',   jyutping: 'bong3 kau4',       emoji: '⚾' },
-  bat:       { english: 'Bat',       chinese: '球棒',   jyutping: 'kau4 bong3',       emoji: '🏏' },
-  ball:      { english: 'Ball',      chinese: '球',     jyutping: 'kau4',             emoji: '⚾' },
-  hit:       { english: 'Hit',       chinese: '打',     jyutping: 'da2',              emoji: '💥' },
-  run:       { english: 'Run',       chinese: '跑',     jyutping: 'paau2',            emoji: '🏃' },
-  catch:     { english: 'Catch',     chinese: '接',     jyutping: 'zip3',             emoji: '🤲' },
-  throw:     { english: 'Throw',     chinese: '掟',     jyutping: 'deng3',            emoji: '🤾' },
-  homerun:   { english: 'Home Run',  chinese: '本壘打', jyutping: 'bun2 leoi5 da2',   emoji: '🎉' },
-  base:      { english: 'Base',      chinese: '壘',     jyutping: 'leoi5',            emoji: '🟫' },
-  letsgo:    { english: "Let's go",  chinese: '加油',   jyutping: 'gaa1 jau4',        emoji: '💪' },
-  welldone:  { english: 'Well done', chinese: '好叻',   jyutping: 'hou2 lek1',        emoji: '👏' },
-  goodboy:   { english: 'Good job',  chinese: '叻仔',   jyutping: 'lek1 zai2',        emoji: '⭐' },
+  baseball:  { english: 'Baseball',  chinese: '棒球',   jyutping: 'bong3 kau4',       emoji: '⚾',  spanish: 'Béisbol' },
+  bat:       { english: 'Bat',       chinese: '球棒',   jyutping: 'kau4 bong3',       emoji: '🏏',  spanish: 'Bate' },
+  ball:      { english: 'Ball',      chinese: '球',     jyutping: 'kau4',             emoji: '⚾',  spanish: 'Pelota' },
+  hit:       { english: 'Hit',       chinese: '打',     jyutping: 'da2',              emoji: '💥',  spanish: 'Golpear' },
+  run:       { english: 'Run',       chinese: '跑',     jyutping: 'paau2',            emoji: '🏃',  spanish: 'Correr' },
+  catch:     { english: 'Catch',     chinese: '接',     jyutping: 'zip3',             emoji: '🤲',  spanish: 'Atrapar' },
+  throw:     { english: 'Throw',     chinese: '掟',     jyutping: 'deng3',            emoji: '🤾',  spanish: 'Lanzar' },
+  homerun:   { english: 'Home Run',  chinese: '本壘打', jyutping: 'bun2 leoi5 da2',   emoji: '🎉',  spanish: 'Jonrón' },
+  base:      { english: 'Base',      chinese: '壘',     jyutping: 'leoi5',            emoji: '🟫',  spanish: 'Base' },
+  letsgo:    { english: "Let's go",  chinese: '加油',   jyutping: 'gaa1 jau4',        emoji: '💪',  spanish: '¡Vamos!' },
+  welldone:  { english: 'Well done', chinese: '好叻',   jyutping: 'hou2 lek1',        emoji: '👏',  spanish: '¡Bien hecho!' },
+  goodboy:   { english: 'Good job',  chinese: '叻仔',   jyutping: 'lek1 zai2',        emoji: '⭐',  spanish: '¡Buen trabajo!' },
 };
 
 const numbers = {
-  1: { english: 'One',   chinese: '一', jyutping: 'jat1' },
-  2: { english: 'Two',   chinese: '二', jyutping: 'ji6'  },
-  3: { english: 'Three', chinese: '三', jyutping: 'saam1'},
-  4: { english: 'Four',  chinese: '四', jyutping: 'sei3' },
-  5: { english: 'Five',  chinese: '五', jyutping: 'ng5'  },
+  1: { english: 'One',   chinese: '一', jyutping: 'jat1', spanish: 'Uno' },
+  2: { english: 'Two',   chinese: '二', jyutping: 'ji6',  spanish: 'Dos' },
+  3: { english: 'Three', chinese: '三', jyutping: 'saam1', spanish: 'Tres' },
+  4: { english: 'Four',  chinese: '四', jyutping: 'sei3', spanish: 'Cuatro' },
+  5: { english: 'Five',  chinese: '五', jyutping: 'ng5',  spanish: 'Cinco' },
 };
 
 const audioCache = {};
@@ -48,7 +49,11 @@ function speakText(text, lang, callback) {
 function speakNumber(n) {
   const num = numbers[n];
   if (!num) return;
-  if (isGrandparents) {
+  if (isSpanish) {
+    speakText(num.spanish, 'es-ES', () => {
+      setTimeout(() => speakText(num.chinese, 'zh-HK'), 300);
+    });
+  } else if (isGrandparents) {
     speakText(num.english, 'en-US');
   } else {
     speakText(num.chinese, 'zh-HK', () => {
@@ -68,7 +73,7 @@ function readPageAloud() {
   if (textToRead) {
     const btn = document.getElementById('read-aloud-btn');
     if (btn) btn.classList.add('speaking');
-    const lang = isGrandparents ? 'zh-HK' : 'en-US';
+    const lang = isGrandparents ? 'zh-HK' : isSpanish ? 'es-ES' : 'en-US';
     speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = lang;
@@ -96,6 +101,15 @@ const ui = {
     home: '🏠 主頁',
     celebration: '🎉 Home Run! 好叻!',
     celebrationText: '你學識咗棒球嘅英文!'
+  },
+  spanish: {
+    tapHint: '¡Toca la palabra para oírla!',
+    next: 'Siguiente ➡️',
+    back: '⬅️ Atrás',
+    finish: '🎉 ¡Terminar!',
+    home: '🏠 Inicio',
+    celebration: '🎉 ¡Jonrón! 叻仔!',
+    celebrationText: '¡Bateaste un jonrón y aprendiste palabras de béisbol!'
   }
 };
 
@@ -103,7 +117,15 @@ const t = ui[mode] || ui.preston;
 
 function cantoneseWord(key) {
   const word = vocab[key];
-  if (isGrandparents) {
+  if (isSpanish) {
+    return `
+      <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
+        <span class="chinese">${word.chinese}</span>
+        <span class="jyutping">${word.jyutping}</span>
+        <span class="english-hint">(${word.spanish})</span>
+      </span>
+    `;
+  } else if (isGrandparents) {
     return `
       <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
         <span class="chinese">${word.english}</span>
@@ -127,7 +149,22 @@ function speak(key) {
     btn.style.transform = 'scale(1.2)';
     setTimeout(() => btn.style.transform = '', 300);
   }
-  if (isGrandparents) {
+  if (isSpanish) {
+    const audio = getCachedAudio(`../../assets/audio/tts/${key}.mp3`);
+    audio.onended = () => {
+      setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+    };
+    audio.onerror = () => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    };
+    audio.play().catch(() => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    });
+  } else if (isGrandparents) {
     speakText(word.english, 'en-US');
   } else {
     speakText(word.chinese, 'zh-HK', () => {
@@ -141,11 +178,18 @@ function getPages() {
     // Page 1 — Intro
     {
       type: 'story',
-      imagePlaceholder: '⚾🏟️☀️<br><small>' + (isGrandparents ? '係棒球場' : 'At the baseball field') + '</small>',
-      readAloud: isGrandparents
+      imagePlaceholder: '⚾🏟️☀️<br><small>' + (isSpanish ? 'En el campo de béisbol' : isGrandparents ? '係棒球場' : 'At the baseball field') + '</small>',
+      readAloud: isSpanish
+        ? 'Preston juega béisbol hoy! Toca la palabra para oírla en cantonés!'
+        : isGrandparents
         ? 'Preston 今日去打棒球! 係棒球場! 撳個字聽發音!'
         : 'Preston is playing baseball today! Tap the word to hear it in Cantonese!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p><strong>Preston</strong> juega</p>
+        ${cantoneseWord('baseball')}
+        <p>hoy!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p><strong>Preston</strong> 今日去打</p>
         ${cantoneseWord('baseball')}!
         <p class="tap-hint">${t.tapHint}</p>
@@ -161,10 +205,18 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🏏💪⭐',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? 'Preston agarra el bate! ¡Muy pesado! ¡Vamos!'
+        : isGrandparents
         ? 'Preston 拎起個球棒! 好重呀! 加油!'
         : 'Preston picks up the bat! So heavy! Let\'s go!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p>Preston agarra el</p>
+        ${cantoneseWord('bat')}!
+        <p>¡Muy pesado!</p>
+        <p>${cantoneseWord('letsgo')}</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>Preston 拎起個</p>
         ${cantoneseWord('bat')}!
         <p>好重呀!</p>
@@ -183,10 +235,19 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🤾⚾💨',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? 'El lanzador lanza la pelota! ¡Allá viene!'
+        : isGrandparents
         ? '投手掟個球! 個球飛嚟喇!'
         : 'The pitcher throws the ball! Here it comes!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p>El lanzador</p>
+        ${cantoneseWord('throw')}
+        <p>la</p>
+        ${cantoneseWord('ball')}!
+        <p>¡Allá viene!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>投手</p>
         ${cantoneseWord('throw')}
         <p>個</p>
@@ -206,11 +267,19 @@ function getPages() {
     // Page 4 — SWING and HIT!
     {
       type: 'story',
-      imagePlaceholder: '💥⚾🌟<br><small>' + (isGrandparents ? 'CRACK!' : 'CRACK!') + '</small>',
-      readAloud: isGrandparents
+      imagePlaceholder: '💥⚾🌟<br><small>' + (isSpanish ? '¡CRACK!' : isGrandparents ? 'CRACK!' : 'CRACK!') + '</small>',
+      readAloud: isSpanish
+        ? '¡CRACK! Preston golpea la pelota! ¡Lo logró!'
+        : isGrandparents
         ? 'CRACK! Preston 打到個球喇! 打到喇!'
         : 'CRACK! Preston hits the ball! He got it!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p>¡CRACK! 💥</p>
+        <p>Preston</p>
+        ${cantoneseWord('hit')}
+        <p>la pelota!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>CRACK! 💥</p>
         <p>Preston</p>
         ${cantoneseWord('hit')}
@@ -230,10 +299,14 @@ function getPages() {
       type: 'counting',
       item: '🟫',
       count: 4,
-      question: isGrandparents
+      question: isSpanish
+        ? '¿Cuántas bases hay en el campo? 幾多個壘?'
+        : isGrandparents
         ? '棒球場有幾多個 bases?'
         : 'How many bases on the field? 幾多個壘?',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? '¿Cuántas bases hay en el campo? ¡Cuéntalas!'
+        : isGrandparents
         ? '棒球場有幾多個 bases? 數一數!'
         : 'How many bases are on the field? Count them!',
       options: [3, 4, 5],
@@ -244,10 +317,20 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🏃💨🟫🟫',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? 'A correr! Preston corre rápido por cada base!'
+        : isGrandparents
         ? '跑呀跑! Preston 快快跑過每個壘!'
         : 'Run run run! Preston runs fast past every base!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p>¡A correr!</p>
+        <p>Preston</p>
+        ${cantoneseWord('run')}
+        <p>rápido!</p>
+        <p>Por cada</p>
+        ${cantoneseWord('base')}!
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>跑呀跑! Preston</p>
         ${cantoneseWord('run')}
         <p>快快跑過每個</p>
@@ -267,10 +350,14 @@ function getPages() {
     // Page 7 — Math: 2 + 2 = 4 bases = HOME RUN
     {
       type: 'math',
-      question: isGrandparents
+      question: isSpanish
+        ? 'Preston corrió 2 bases, luego 2 más.<br>2 + 2 = ?'
+        : isGrandparents
         ? 'Preston 跑咗 2 個壘，再跑多 2 個。<br>2 + 2 = ?'
         : 'Preston ran 2 bases, then 2 more.<br>2 + 2 = ?',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? 'Preston corrió 2 bases, luego 2 más. 2 más 2 es igual a cuánto?'
+        : isGrandparents
         ? 'Preston 跑咗 2 個壘，再跑多 2 個。2 加 2 等於幾多?'
         : 'Preston ran 2 bases, then 2 more. 2 plus 2 equals what?',
       visual: '🟫🟫 + 🟫🟫 = ?',
@@ -281,11 +368,19 @@ function getPages() {
     // Page 8 — HOME RUN!
     {
       type: 'story',
-      imagePlaceholder: '🎉🏠⚾✨<br><small>' + (isGrandparents ? '本壘打!' : 'HOME RUN!') + '</small>',
-      readAloud: isGrandparents
+      imagePlaceholder: '🎉🏠⚾✨<br><small>' + (isSpanish ? '¡JONRÓN!' : isGrandparents ? '本壘打!' : 'HOME RUN!') + '</small>',
+      readAloud: isSpanish
+        ? '¡Jonrón! Preston pisa el plato! ¡El público se vuelve loco!'
+        : isGrandparents
         ? '本壘打! Preston 踩到本壘! 全場嘩晒!'
         : 'HOME RUN! Preston steps on home base! The crowd goes wild!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p style="font-size: 2rem;">🎉</p>
+        <p>Preston batea un</p>
+        ${cantoneseWord('homerun')}!
+        <p>¡Corrió las 4 bases!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p style="font-size: 2rem;">🎉</p>
         ${cantoneseWord('homerun')}!
         <p>Preston 踩到本壘!</p>
@@ -304,10 +399,18 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🤲⚾😊',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? 'El compañero atrapa la pelota! ¡Bien hecho!'
+        : isGrandparents
         ? '隊友接住個球! 做得好!'
         : 'The teammate catches the ball! Great teamwork!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p>El compañero</p>
+        ${cantoneseWord('catch')}
+        <p>la pelota!</p>
+        <p>${cantoneseWord('welldone')}!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>隊友</p>
         ${cantoneseWord('catch')}
         <p>住個球!</p>
@@ -327,10 +430,14 @@ function getPages() {
       type: 'counting',
       item: '⚾',
       count: 3,
-      question: isGrandparents
+      question: isSpanish
+        ? '¿Cuántas pelotas golpeó Preston? 幾多個球?'
+        : isGrandparents
         ? 'Preston 打咗幾多個 balls?'
         : 'How many balls did Preston hit? 幾多個球?',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? '¿Cuántas pelotas golpeó Preston? ¡Cuéntalas!'
+        : isGrandparents
         ? 'Preston 打咗幾多個 balls? 數一數!'
         : 'How many balls did Preston hit? Count them!',
       options: [2, 3, 4],
@@ -341,10 +448,16 @@ function getPages() {
     {
       type: 'finale',
       imagePlaceholder: '🏆⚾🎉',
-      readAloud: isGrandparents
+      readAloud: isSpanish
+        ? 'Todo el equipo dice: ¡Buen trabajo! Preston es un héroe del béisbol!'
+        : isGrandparents
         ? '全隊話: 叻仔! Preston 係棒球英雄!'
         : 'The whole team says: Great job! Preston is a baseball hero!',
-      content: isGrandparents ? `
+      content: isSpanish ? `
+        <p>Todo el equipo dice:</p>
+        <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
+        <p>Preston es un héroe del béisbol! ⚾🏆</p>
+      ` : isGrandparents ? `
         <p>全隊話:</p>
         <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
         <p>Preston 係棒球英雄! ⚾🏆</p>
@@ -405,7 +518,7 @@ function renderPage() {
       <div class="answers">
         ${page.options.map(n => `
           <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
-            ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
+            ${n} ${isSpanish ? numbers[n].spanish : isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
       </div>
@@ -423,7 +536,7 @@ function renderPage() {
       <div class="answers">
         ${page.options.map(n => `
           <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
-            ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
+            ${n} ${isSpanish ? numbers[n].spanish : isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
       </div>

@@ -4,25 +4,26 @@
 const urlParams = new URLSearchParams(window.location.search);
 const mode = urlParams.get('mode') || 'preston';
 const isGrandparents = mode === 'grandparents';
+const isSpanish = mode === 'spanish';
 
 const vocab = {
-  apple: { english: 'Apple', chinese: '蘋果', jyutping: 'ping4 gwo2', emoji: '🍎' },
-  grapes: { english: 'Grapes', chinese: '提子', jyutping: 'tai4 zi2', emoji: '🍇' },
-  banana: { english: 'Banana', chinese: '香蕉', jyutping: 'hoeng1 ziu1', emoji: '🍌' },
-  blueberry: { english: 'Blueberry', chinese: '藍莓', jyutping: 'laam4 mui2', emoji: '🫐' },
-  strawberry: { english: 'Strawberry', chinese: '士多啤梨', jyutping: 'si6 do1 be1 lei2', emoji: '🍓' },
-  watermelon: { english: 'Watermelon', chinese: '西瓜', jyutping: 'sai1 gwaa1', emoji: '🍉' },
-  grandma: { english: 'Grandma', chinese: '嫲嫲', jyutping: 'maa4 maa4', emoji: '👵' },
-  thankyou: { english: 'Thank you', chinese: '多謝', jyutping: 'do1 ze6', emoji: '🙏' },
-  goodboy: { english: 'Good job', chinese: '叻仔', jyutping: 'lek1 zai2', emoji: '⭐' },
+  apple: { english: 'Apple', chinese: '蘋果', jyutping: 'ping4 gwo2', emoji: '🍎', spanish: 'Manzana' },
+  grapes: { english: 'Grapes', chinese: '提子', jyutping: 'tai4 zi2', emoji: '🍇', spanish: 'Uvas' },
+  banana: { english: 'Banana', chinese: '香蕉', jyutping: 'hoeng1 ziu1', emoji: '🍌', spanish: 'Plátano' },
+  blueberry: { english: 'Blueberry', chinese: '藍莓', jyutping: 'laam4 mui2', emoji: '🫐', spanish: 'Arándano' },
+  strawberry: { english: 'Strawberry', chinese: '士多啤梨', jyutping: 'si6 do1 be1 lei2', emoji: '🍓', spanish: 'Fresa' },
+  watermelon: { english: 'Watermelon', chinese: '西瓜', jyutping: 'sai1 gwaa1', emoji: '🍉', spanish: 'Sandía' },
+  grandma: { english: 'Grandma', chinese: '嫲嫲', jyutping: 'maa4 maa4', emoji: '👵', spanish: 'Abuelita' },
+  thankyou: { english: 'Thank you', chinese: '多謝', jyutping: 'do1 ze6', emoji: '🙏', spanish: 'Gracias' },
+  goodboy: { english: 'Good job', chinese: '叻仔', jyutping: 'lek1 zai2', emoji: '⭐', spanish: '¡Buen trabajo!' },
 };
 
 const numbers = {
-  1: { english: 'One', chinese: '一', jyutping: 'jat1', file: 'one' },
-  2: { english: 'Two', chinese: '二', jyutping: 'ji6', file: 'two' },
-  3: { english: 'Three', chinese: '三', jyutping: 'saam1', file: 'three' },
-  4: { english: 'Four', chinese: '四', jyutping: 'sei3', file: 'four' },
-  5: { english: 'Five', chinese: '五', jyutping: 'ng5', file: 'five' },
+  1: { english: 'One', chinese: '一', jyutping: 'jat1', file: 'one', spanish: 'Uno' },
+  2: { english: 'Two', chinese: '二', jyutping: 'ji6', file: 'two', spanish: 'Dos' },
+  3: { english: 'Three', chinese: '三', jyutping: 'saam1', file: 'three', spanish: 'Tres' },
+  4: { english: 'Four', chinese: '四', jyutping: 'sei3', file: 'four', spanish: 'Cuatro' },
+  5: { english: 'Five', chinese: '五', jyutping: 'ng5', file: 'five', spanish: 'Cinco' },
 };
 
 // Audio cache — reuse Audio objects instead of creating new ones on every tap
@@ -44,12 +45,16 @@ function speakText(text, lang, callback) {
   }
 }
 
-// Speak a number - speaks BOTH languages for Preston
+// Speak a number
 function speakNumber(n) {
   const num = numbers[n];
   if (!num) return;
   
-  if (isGrandparents) {
+  if (isSpanish) {
+    speakText(num.spanish, 'es-ES', () => {
+      setTimeout(() => speakText(num.chinese, 'zh-HK'), 300);
+    });
+  } else if (isGrandparents) {
     speakText(num.english, 'en-US');
   } else {
     speakText(num.chinese, 'zh-HK', () => {
@@ -73,7 +78,7 @@ function readPageAloud() {
     const btn = document.getElementById('read-aloud-btn');
     if (btn) btn.classList.add('speaking');
     
-    const lang = isGrandparents ? 'zh-HK' : 'en-US';
+    const lang = isGrandparents ? 'zh-HK' : isSpanish ? 'es-ES' : 'en-US';
     speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = lang;
@@ -105,18 +110,36 @@ const ui = {
     home: '🏠 主頁',
     celebration: '🎉 Good job! 好叻!',
     celebrationText: '你學識咗生果嘅英文!'
+  },
+  spanish: {
+    tapHint: '¡Toca la palabra para oírla!',
+    howMany: '¿Cuántos',
+    next: 'Siguiente ➡️',
+    back: '⬅️ Atrás',
+    finish: '🎉 ¡Terminar!',
+    home: '🏠 Inicio',
+    celebration: '🎉 ¡Buen trabajo! 叻仔!',
+    celebrationText: '¡Aprendiste frutas con 嫲嫲!'
   }
 };
 
 const t = ui[mode] || ui.preston;
 
+function spanishText(spanish, english, cantonese) {
+  return isSpanish ? spanish : isGrandparents ? cantonese : english;
+}
+
 function getPages() {
   return [
     {
       type: 'story',
-      imagePlaceholder: '🏪🍎🍇🍌<br><small>' + (isGrandparents ? '嫲嫲嘅生果檔' : "Grandma's fruit stand") + '</small>',
-      readAloud: isGrandparents ? '有一日，Preston 嚟到嫲嫲嘅生果檔!' : "One sunny day, Preston visited Grandma's fruit stand! Tap the words to hear them in Cantonese.",
-      content: isGrandparents ? `
+      imagePlaceholder: '🏪🍎🍇🍌<br><small>' + (isSpanish ? 'Puesto de fruta de 嫲嫲' : isGrandparents ? '嫲嫲嘅生果檔' : "Grandma's fruit stand") + '</small>',
+      readAloud: isSpanish ? '¡Un día soleado, Preston visitó el puesto de fruta de la abuelita! Toca las palabras para oírlas en cantonés.' : isGrandparents ? '有一日，Preston 嚟到嫲嫲嘅生果檔!' : "One sunny day, Preston visited Grandma's fruit stand! Tap the words to hear them in Cantonese.",
+      content: isSpanish ? `
+        <p>¡Un día soleado, <strong>Preston</strong> visitó</p>
+        el puesto de fruta de ${cantoneseWord('grandma')}!
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>有一日，<strong>Preston</strong> 嚟到</p>
         ${cantoneseWord('grandma')}嘅生果檔!
         <p class="tap-hint">${t.tapHint}</p>
@@ -129,8 +152,12 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🍎🍎🍎',
-      readAloud: isGrandparents ? '嫲嫲畀 Preston 睇蘋果。呢個係 apple!' : 'Grandma shows Preston some apples. This is apple in Cantonese!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'La abuelita le enseña manzanas a Preston. ¡Esto es manzana en cantonés!' : isGrandparents ? '嫲嫲畀 Preston 睇蘋果。呢個係 apple!' : 'Grandma shows Preston some apples. This is apple in Cantonese!',
+      content: isSpanish ? `
+        <p>La abuelita le enseña manzanas a Preston.</p>
+        <p>"Esto es ${cantoneseWord('apple')}!"</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>嫲嫲畀 Preston 睇蘋果。</p>
         <p>"呢個係 ${cantoneseWord('apple')}!"</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -144,16 +171,20 @@ function getPages() {
       type: 'counting',
       fruit: 'apple',
       count: 3,
-      question: isGrandparents ? '幾多個 apples?' : 'How many apples? 幾多蘋果?',
-      readAloud: isGrandparents ? '幾多個 apples? 數一數!' : 'How many apples? Count them!',
+      question: isSpanish ? '¿Cuántas manzanas? 幾多蘋果?' : isGrandparents ? '幾多個 apples?' : 'How many apples? 幾多蘋果?',
+      readAloud: isSpanish ? '¿Cuántas manzanas? ¡Cuéntalas!' : isGrandparents ? '幾多個 apples? 數一數!' : 'How many apples? Count them!',
       options: [2, 3, 4],
       correct: 3
     },
     {
       type: 'story',
       imagePlaceholder: '🍌🍌',
-      readAloud: isGrandparents ? '跟住，嫲嫲畀佢睇香蕉。呢個係 banana!' : 'Next, Grandma shows Preston bananas. This is banana in Cantonese!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'Luego, la abuelita le enseña plátanos. ¡Esto es plátano en cantonés!' : isGrandparents ? '跟住，嫲嫲畀佢睇香蕉。呢個係 banana!' : 'Next, Grandma shows Preston bananas. This is banana in Cantonese!',
+      content: isSpanish ? `
+        <p>Luego, la abuelita le enseña plátanos.</p>
+        <p>"Esto es ${cantoneseWord('banana')}!"</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>跟住，嫲嫲畀佢睇香蕉。</p>
         <p>"呢個係 ${cantoneseWord('banana')}!"</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -167,16 +198,20 @@ function getPages() {
       type: 'counting',
       fruit: 'banana',
       count: 2,
-      question: isGrandparents ? '幾多條 bananas?' : 'How many bananas? 幾多香蕉?',
-      readAloud: isGrandparents ? '幾多條 bananas? 數一數!' : 'How many bananas? Count them!',
+      question: isSpanish ? '¿Cuántos plátanos? 幾多香蕉?' : isGrandparents ? '幾多條 bananas?' : 'How many bananas? 幾多香蕉?',
+      readAloud: isSpanish ? '¿Cuántos plátanos? ¡Cuéntalos!' : isGrandparents ? '幾多條 bananas? 數一數!' : 'How many bananas? Count them!',
       options: [1, 2, 3],
       correct: 2
     },
     {
       type: 'story',
       imagePlaceholder: '🍇🍇🍇🍇🍇',
-      readAloud: isGrandparents ? '睇下呢度! 嫲嫲話。呢啲係 grapes!' : 'Look Preston! says Grandma. These are grapes in Cantonese!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? '¡Mira Preston! —dice la abuelita—. ¡Esto son uvas en cantonés!' : isGrandparents ? '睇下呢度! 嫲嫲話。呢啲係 grapes!' : 'Look Preston! says Grandma. These are grapes in Cantonese!',
+      content: isSpanish ? `
+        <p>"¡Mira Preston!" —dice 嫲嫲.</p>
+        <p>"Esto son ${cantoneseWord('grapes')}!"</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>"睇下呢度!" 嫲嫲話。</p>
         <p>"呢啲係 ${cantoneseWord('grapes')}!"</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -190,16 +225,20 @@ function getPages() {
       type: 'counting',
       fruit: 'grapes',
       count: 5,
-      question: isGrandparents ? '幾多串 grapes?' : 'How many grape bunches? 幾多提子?',
-      readAloud: isGrandparents ? '幾多串 grapes? 數一數!' : 'How many grape bunches? Count them!',
+      question: isSpanish ? '¿Cuántos racimos de uvas? 幾多提子?' : isGrandparents ? '幾多串 grapes?' : 'How many grape bunches? 幾多提子?',
+      readAloud: isSpanish ? '¿Cuántos racimos de uvas? ¡Cuéntalos!' : isGrandparents ? '幾多串 grapes? 數一數!' : 'How many grape bunches? Count them!',
       options: [4, 5, 6],
       correct: 5
     },
     {
       type: 'story',
       imagePlaceholder: '🍓🍓🍓🍓',
-      readAloud: isGrandparents ? '好好味! 嫲嫲有士多啤梨! 呢個係 strawberry!' : 'Yummy! Grandma has strawberries! This is strawberry in Cantonese!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? '¡Qué rico! La abuelita tiene fresas. ¡Esto es fresa en cantonés!' : isGrandparents ? '好好味! 嫲嫲有士多啤梨! 呢個係 strawberry!' : 'Yummy! Grandma has strawberries! This is strawberry in Cantonese!',
+      content: isSpanish ? `
+        <p>¡Qué rico! 嫲嫲 tiene fresas.</p>
+        <p>"Esto es ${cantoneseWord('strawberry')}!"</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>好好味! 嫲嫲有士多啤梨!</p>
         <p>"呢個係 ${cantoneseWord('strawberry')}!"</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -213,16 +252,20 @@ function getPages() {
       type: 'counting',
       fruit: 'strawberry',
       count: 4,
-      question: isGrandparents ? '幾多粒 strawberries?' : 'How many strawberries? 幾多士多啤梨?',
-      readAloud: isGrandparents ? '幾多粒 strawberries? 數一數!' : 'How many strawberries? Count them!',
+      question: isSpanish ? '¿Cuántas fresas? 幾多士多啤梨?' : isGrandparents ? '幾多粒 strawberries?' : 'How many strawberries? 幾多士多啤梨?',
+      readAloud: isSpanish ? '¿Cuántas fresas? ¡Cuéntalas!' : isGrandparents ? '幾多粒 strawberries? 數一數!' : 'How many strawberries? Count them!',
       options: [3, 4, 5],
       correct: 4
     },
     {
       type: 'story',
       imagePlaceholder: '👦🙏👵',
-      readAloud: isGrandparents ? 'Preston 同嫲嫲講: Thank you 嫲嫲!' : 'Preston says to Grandma: Thank you Grandma in Cantonese!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'Preston le dice a la abuelita: ¡Gracias abuelita en cantonés!' : isGrandparents ? 'Preston 同嫲嫲講: Thank you 嫲嫲!' : 'Preston says to Grandma: Thank you Grandma in Cantonese!',
+      content: isSpanish ? `
+        <p>Preston le dice a 嫲嫲:</p>
+        <p style="font-size: 2rem;">${cantoneseWord('thankyou')} 嫲嫲!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>Preston 同嫲嫲講:</p>
         <p style="font-size: 2rem;">${cantoneseWord('thankyou')} 嫲嫲!</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -235,8 +278,12 @@ function getPages() {
     {
       type: 'finale',
       imagePlaceholder: '🎉⭐🎉',
-      readAloud: isGrandparents ? '嫲嫲話: Good job! 做得好!' : 'Grandma says: Good job Preston!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'La abuelita dice: ¡Buen trabajo Preston!' : isGrandparents ? '嫲嫲話: Good job! 做得好!' : 'Grandma says: Good job Preston!',
+      content: isSpanish ? `
+        <p>嫲嫲 dice:</p>
+        <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
+        <p>¡Buen trabajo Preston!</p>
+      ` : isGrandparents ? `
         <p>嫲嫲話:</p>
         <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
         <p>做得好!</p>
@@ -252,10 +299,17 @@ function getPages() {
 const pages = getPages();
 let currentPage = 0;
 
-// Updated: Shows BOTH Chinese and English for Preston mode
 function cantoneseWord(key) {
   const word = vocab[key];
-  if (isGrandparents) {
+  if (isSpanish) {
+    return `
+      <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
+        <span class="chinese">${word.chinese}</span>
+        <span class="jyutping">${word.jyutping}</span>
+        <span class="english-hint">(${word.spanish})</span>
+      </span>
+    `;
+  } else if (isGrandparents) {
     return `
       <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
         <span class="chinese">${word.english}</span>
@@ -272,7 +326,6 @@ function cantoneseWord(key) {
   }
 }
 
-// Updated: Speaks Cantonese THEN English for Preston mode
 function speak(key) {
   const word = vocab[key];
   const btn = document.querySelector(`[data-word="${key}"]`);
@@ -282,7 +335,22 @@ function speak(key) {
     setTimeout(() => btn.style.transform = '', 300);
   }
   
-  if (isGrandparents) {
+  if (isSpanish) {
+    const audio = getCachedAudio(`../../assets/audio/tts/${key}.mp3`);
+    audio.onended = () => {
+      setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+    };
+    audio.onerror = () => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    };
+    audio.play().catch(() => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    });
+  } else if (isGrandparents) {
     const audio = getCachedAudio(`../../assets/audio/english/${key}.mp3`);
     audio.onerror = () => speakText(word.english, 'en-US');
     audio.play().catch(() => speakText(word.english, 'en-US'));
@@ -353,7 +421,7 @@ function renderPage() {
       <div class="answers">
         ${page.options.map(n => `
           <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
-            ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
+            ${n} ${isSpanish ? numbers[n].spanish : isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
       </div>

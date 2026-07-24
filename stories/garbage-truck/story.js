@@ -1,38 +1,43 @@
 // Garbage Truck Day - Story Data and Logic
-// Bilingual: Preston learns Cantonese, Grandparents learn English
+// Bilingual: Preston learns Cantonese, Grandparents learn English, Spanish speakers learn Cantonese
 
 const urlParams = new URLSearchParams(window.location.search);
 const mode = urlParams.get('mode') || 'preston';
 const isGrandparents = mode === 'grandparents';
+const isSpanish = mode === 'spanish';
 
 const vocab = {
-  garbagetruck: { english: 'Garbage truck', chinese: '垃圾車', jyutping: 'laap6 saap3 ce1', emoji: '🚛' },
-  trash: { english: 'Trash', chinese: '垃圾', jyutping: 'laap6 saap3', emoji: '🗑️' },
-  bag: { english: 'Bag', chinese: '袋', jyutping: 'doi2', emoji: '💰' },
-  house: { english: 'House', chinese: '屋', jyutping: 'uk1', emoji: '🏠' },
-  recycle: { english: 'Recycle', chinese: '回收', jyutping: 'wui4 sau1', emoji: '♻️' },
-  clean: { english: 'Clean', chinese: '乾淨', jyutping: 'gon1 zeng6', emoji: '✨' },
-  help: { english: 'Help', chinese: '幫手', jyutping: 'bong1 sau2', emoji: '🤝' },
-  goodboy: { english: 'Good job', chinese: '叻仔', jyutping: 'lek1 zai2', emoji: '⭐' },
-  thankyou: { english: 'Thank you', chinese: '多謝', jyutping: 'do1 ze6', emoji: '🙏' },
+  garbagetruck: { english: 'Garbage truck', chinese: '垃圾車', jyutping: 'laap6 saap3 ce1', emoji: '🚛', spanish: 'Camión de basura' },
+  trash: { english: 'Trash', chinese: '垃圾', jyutping: 'laap6 saap3', emoji: '🗑️', spanish: 'Basura' },
+  bag: { english: 'Bag', chinese: '袋', jyutping: 'doi2', emoji: '💰', spanish: 'Bolsa' },
+  house: { english: 'House', chinese: '屋', jyutping: 'uk1', emoji: '🏠', spanish: 'Casa' },
+  recycle: { english: 'Recycle', chinese: '回收', jyutping: 'wui4 sau1', emoji: '♻️', spanish: 'Reciclar' },
+  clean: { english: 'Clean', chinese: '乾淨', jyutping: 'gon1 zeng6', emoji: '✨', spanish: 'Limpio' },
+  help: { english: 'Help', chinese: '幫手', jyutping: 'bong1 sau2', emoji: '🤝', spanish: 'Ayuda' },
+  goodboy: { english: 'Good job', chinese: '叻仔', jyutping: 'lek1 zai2', emoji: '⭐', spanish: '¡Buen trabajo!' },
+  thankyou: { english: 'Thank you', chinese: '多謝', jyutping: 'do1 ze6', emoji: '🙏', spanish: 'Gracias' },
 };
 
 const numbers = {
-  1: { english: 'One', chinese: '一', jyutping: 'jat1', file: 'one' },
-  2: { english: 'Two', chinese: '二', jyutping: 'ji6', file: 'two' },
-  3: { english: 'Three', chinese: '三', jyutping: 'saam1', file: 'three' },
-  4: { english: 'Four', chinese: '四', jyutping: 'sei3', file: 'four' },
-  5: { english: 'Five', chinese: '五', jyutping: 'ng5', file: 'five' },
-  6: { english: 'Six', chinese: '六', jyutping: 'luk6', file: 'six' },
-  7: { english: 'Seven', chinese: '七', jyutping: 'cat1', file: 'seven' },
+  1: { english: 'One', chinese: '一', jyutping: 'jat1', file: 'one', spanish: 'Uno' },
+  2: { english: 'Two', chinese: '二', jyutping: 'ji6', file: 'two', spanish: 'Dos' },
+  3: { english: 'Three', chinese: '三', jyutping: 'saam1', file: 'three', spanish: 'Tres' },
+  4: { english: 'Four', chinese: '四', jyutping: 'sei3', file: 'four', spanish: 'Cuatro' },
+  5: { english: 'Five', chinese: '五', jyutping: 'ng5', file: 'five', spanish: 'Cinco' },
+  6: { english: 'Six', chinese: '六', jyutping: 'luk6', file: 'six', spanish: 'Seis' },
+  7: { english: 'Seven', chinese: '七', jyutping: 'cat1', file: 'seven', spanish: 'Siete' },
 };
 
-// Speak a number - now speaks BOTH languages for Preston
+// Speak a number
 function speakNumber(n) {
   const num = numbers[n];
   if (!num) return;
   
-  if (isGrandparents) {
+  if (isSpanish) {
+    speakText(num.spanish, 'es-ES', () => {
+      setTimeout(() => speakText(num.chinese, 'zh-HK'), 300);
+    });
+  } else if (isGrandparents) {
     // Grandparents: English only
     speakText(num.english, 'en-US');
   } else {
@@ -81,7 +86,7 @@ function readPageAloud() {
       btn.classList.add('speaking');
     }
     
-    const lang = isGrandparents ? 'zh-HK' : 'en-US';
+    const lang = isGrandparents ? 'zh-HK' : isSpanish ? 'es-ES' : 'en-US';
     speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = lang;
@@ -111,6 +116,15 @@ const ui = {
     home: '🏠 主頁',
     celebration: '🎉 Good job! 好叻!',
     celebrationText: '你學識咗垃圾車嘅英文!'
+  },
+  spanish: {
+    tapHint: '¡Toca la palabra para oírla!',
+    next: 'Siguiente ➡️',
+    back: '⬅️ Atrás',
+    finish: '🎉 ¡Terminar!',
+    home: '🏠 Inicio',
+    celebration: '🎉 ¡Buen trabajo! 叻仔!',
+    celebrationText: '¡Ayudaste a Gary a recoger toda la basura!'
   }
 };
 
@@ -120,9 +134,13 @@ function getPages() {
   return [
     {
       type: 'story',
-      imagePlaceholder: '🚛💨<br><small>' + (isGrandparents ? 'Gary 垃圾車' : 'Gary the Garbage Truck') + '</small>',
-      readAloud: isGrandparents ? 'Preston 見到 Gary 垃圾車!' : 'Preston meets Gary the Garbage truck! Tap the word to hear it in Cantonese.',
-      content: isGrandparents ? `
+      imagePlaceholder: '🚛💨<br><small>' + (isSpanish ? 'Gary el Camión de Basura' : isGrandparents ? 'Gary 垃圾車' : 'Gary the Garbage Truck') + '</small>',
+      readAloud: isSpanish ? 'Preston conoce a Gary el camión de basura. ¡Toca la palabra para oírla en cantonés!' : isGrandparents ? 'Preston 見到 Gary 垃圾車!' : 'Preston meets Gary the Garbage truck! Tap the word to hear it in Cantonese.',
+      content: isSpanish ? `
+        <p><strong>Preston</strong> conoce a Gary</p>
+        ${cantoneseWord('garbagetruck')}!
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p><strong>Preston</strong> 見到 Gary</p>
         ${cantoneseWord('garbagetruck')}!
         <p class="tap-hint">${t.tapHint}</p>
@@ -135,8 +153,12 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🚛🤝👦',
-      readAloud: isGrandparents ? 'Gary 需要幫手! 一齊收垃圾袋!' : 'Gary needs help! Let\'s collect trash bags!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'Gary necesita ayuda! ¡Vamos a recoger bolsas de basura!' : isGrandparents ? 'Gary 需要幫手! 一齊收垃圾袋!' : 'Gary needs help! Let\'s collect trash bags!',
+      content: isSpanish ? `
+        <p>Gary necesita ${cantoneseWord('help')}!</p>
+        <p>¡Vamos a recoger bolsas de basura!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>Gary 需要 ${cantoneseWord('help')}!</p>
         <p>一齊收垃圾袋!</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -150,16 +172,19 @@ function getPages() {
       type: 'counting',
       item: '🗑️',
       count: 2,
-      question: isGrandparents ? '第一間屋! 幾多個 trash bags?' : 'First house! How many trash bags?',
-      readAloud: isGrandparents ? '第一間屋! 幾多個 trash bags? 數一數!' : 'First house! How many trash bags? Count them!',
+      question: isSpanish ? '¡Primera casa! ¿Cuántas bolsas de basura?' : isGrandparents ? '第一間屋! 幾多個 trash bags?' : 'First house! How many trash bags?',
+      readAloud: isSpanish ? '¡Primera casa! ¿Cuántas bolsas de basura? ¡Cuéntalas!' : isGrandparents ? '第一間屋! 幾多個 trash bags? 數一數!' : 'First house! How many trash bags? Count them!',
       options: [1, 2, 3],
       correct: 2
     },
     {
       type: 'story',
       imagePlaceholder: '🏠🗑️🗑️🗑️',
-      readAloud: isGrandparents ? '下一間屋! 呢度有更多垃圾袋!' : 'Next house! More trash bags here!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? '¡Siguiente casa! ¡Aquí hay más bolsas de basura!' : isGrandparents ? '下一間屋! 呢度有更多垃圾袋!' : 'Next house! More trash bags here!',
+      content: isSpanish ? `
+        <p>¡Siguiente ${cantoneseWord('house')}!</p>
+        <p>¡Aquí hay más bolsas de basura!</p>
+      ` : isGrandparents ? `
         <p>下一間 ${cantoneseWord('house')}!</p>
         <p>呢度有更多垃圾袋!</p>
       ` : `
@@ -169,8 +194,8 @@ function getPages() {
     },
     {
       type: 'math',
-      question: isGrandparents ? 'Gary 有 2 個袋。<br>佢再執多 3 個袋。<br>2 + 3 = ?' : 'Gary had 2 bags.<br>He picked up 3 more bags.<br>2 + 3 = ?',
-      readAloud: isGrandparents ? 'Gary 有 2 個袋。佢再執多 3 個袋。2 加 3 等於幾多?' : 'Gary had 2 bags. He picked up 3 more bags. 2 plus 3 equals what?',
+      question: isSpanish ? 'Gary tenía 2 bolsas.<br>Recogió 3 bolsas más.<br>2 + 3 = ?' : isGrandparents ? 'Gary 有 2 個袋。<br>佢再執多 3 個袋。<br>2 + 3 = ?' : 'Gary had 2 bags.<br>He picked up 3 more bags.<br>2 + 3 = ?',
+      readAloud: isSpanish ? 'Gary tenía 2 bolsas. Recogió 3 bolsas más. 2 más 3 es igual a cuánto?' : isGrandparents ? 'Gary 有 2 個袋。佢再執多 3 個袋。2 加 3 等於幾多?' : 'Gary had 2 bags. He picked up 3 more bags. 2 plus 3 equals what?',
       visual: '🗑️🗑️ + 🗑️🗑️🗑️ = ?',
       options: [4, 5, 6],
       correct: 5
@@ -178,8 +203,11 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🚛<br>🗑️🗑️🗑️🗑️🗑️',
-      readAloud: isGrandparents ? 'Gary 有 5 個袋啦! 垃圾越嚟越多!' : 'Gary has 5 bags now! The trash is piling up!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'Gary tiene 5 bolsas ahora! ¡La basura se acumula!' : isGrandparents ? 'Gary 有 5 個袋啦! 垃圾越嚟越多!' : 'Gary has 5 bags now! The trash is piling up!',
+      content: isSpanish ? `
+        <p>Gary tiene 5 bolsas ahora!</p>
+        <p>La ${cantoneseWord('trash')} se acumula!</p>
+      ` : isGrandparents ? `
         <p>Gary 有 5 個袋啦!</p>
         <p>${cantoneseWord('trash')} 越嚟越多!</p>
       ` : `
@@ -189,9 +217,12 @@ function getPages() {
     },
     {
       type: 'story',
-      imagePlaceholder: '🚛➡️🏭<br><small>' + (isGrandparents ? '回收中心' : 'Recycling center') + '</small>',
-      readAloud: isGrandparents ? '去回收啦! Gary 倒咗 2 個袋。' : 'Time to recycle! Gary dumps 2 bags.',
-      content: isGrandparents ? `
+      imagePlaceholder: '🚛➡️🏭<br><small>' + (isSpanish ? 'Centro de reciclaje' : isGrandparents ? '回收中心' : 'Recycling center') + '</small>',
+      readAloud: isSpanish ? '¡Hora de reciclar! Gary tira 2 bolsas.' : isGrandparents ? '去回收啦! Gary 倒咗 2 個袋。' : 'Time to recycle! Gary dumps 2 bags.',
+      content: isSpanish ? `
+        <p>¡Hora de ${cantoneseWord('recycle')}!</p>
+        <p>Gary tira 2 bolsas.</p>
+      ` : isGrandparents ? `
         <p>去 ${cantoneseWord('recycle')} 啦!</p>
         <p>Gary 倒咗 2 個袋。</p>
       ` : `
@@ -201,8 +232,8 @@ function getPages() {
     },
     {
       type: 'math',
-      question: isGrandparents ? 'Gary 有 5 個袋。<br>佢倒咗 2 個袋。<br>5 - 2 = ?' : 'Gary had 5 bags.<br>He dumped 2 bags.<br>5 - 2 = ?',
-      readAloud: isGrandparents ? 'Gary 有 5 個袋。佢倒咗 2 個袋。5 減 2 等於幾多?' : 'Gary had 5 bags. He dumped 2 bags. 5 minus 2 equals what?',
+      question: isSpanish ? 'Gary tenía 5 bolsas.<br>Tiró 2 bolsas.<br>5 - 2 = ?' : isGrandparents ? 'Gary 有 5 個袋。<br>佢倒咗 2 個袋。<br>5 - 2 = ?' : 'Gary had 5 bags.<br>He dumped 2 bags.<br>5 - 2 = ?',
+      readAloud: isSpanish ? 'Gary tenía 5 bolsas. Tiró 2 bolsas. 5 menos 2 es igual a cuánto?' : isGrandparents ? 'Gary 有 5 個袋。佢倒咗 2 個袋。5 減 2 等於幾多?' : 'Gary had 5 bags. He dumped 2 bags. 5 minus 2 equals what?',
       visual: '🗑️🗑️🗑️🗑️🗑️ - 🗑️🗑️ = ?',
       options: [2, 3, 4],
       correct: 3
@@ -211,24 +242,27 @@ function getPages() {
       type: 'counting',
       item: '🏠',
       count: 4,
-      question: isGrandparents ? '仲有幾多間 houses 要去?' : 'How many houses left to visit?',
-      readAloud: isGrandparents ? '仲有幾多間 houses 要去? 數一數!' : 'How many houses left to visit? Count them!',
+      question: isSpanish ? '¿Cuántas casas quedan por visitar?' : isGrandparents ? '仲有幾多間 houses 要去?' : 'How many houses left to visit?',
+      readAloud: isSpanish ? '¿Cuántas casas quedan por visitar? ¡Cuéntalas!' : isGrandparents ? '仲有幾多間 houses 要去? 數一數!' : 'How many houses left to visit? Count them!',
       options: [3, 4, 5],
       correct: 4
     },
     {
       type: 'math',
-      question: isGrandparents ? 'Gary 有 3 個袋。<br>佢再執多 1 個。<br>3 + 1 = ?' : 'Gary has 3 bags.<br>He picks up 1 more.<br>3 + 1 = ?',
-      readAloud: isGrandparents ? 'Gary 有 3 個袋。佢再執多 1 個。3 加 1 等於幾多?' : 'Gary has 3 bags. He picks up 1 more. 3 plus 1 equals what?',
+      question: isSpanish ? 'Gary tiene 3 bolsas.<br>Recoge 1 más.<br>3 + 1 = ?' : isGrandparents ? 'Gary 有 3 個袋。<br>佢再執多 1 個。<br>3 + 1 = ?' : 'Gary has 3 bags.<br>He picks up 1 more.<br>3 + 1 = ?',
+      readAloud: isSpanish ? 'Gary tiene 3 bolsas. Recoge 1 más. 3 más 1 es igual a cuánto?' : isGrandparents ? 'Gary 有 3 個袋。佢再執多 1 個。3 加 1 等於幾多?' : 'Gary has 3 bags. He picks up 1 more. 3 plus 1 equals what?',
       visual: '🗑️🗑️🗑️ + 🗑️ = ?',
       options: [3, 4, 5],
       correct: 4
     },
     {
       type: 'story',
-      imagePlaceholder: '✨🏘️✨<br><small>' + (isGrandparents ? '乾淨嘅街道' : 'Clean neighborhood') + '</small>',
-      readAloud: isGrandparents ? '條街好乾淨! Gary 話多謝 Preston!' : 'The street is clean! Gary says thank you Preston!',
-      content: isGrandparents ? `
+      imagePlaceholder: '✨🏘️✨<br><small>' + (isSpanish ? 'Vecindario limpio' : isGrandparents ? '乾淨嘅街道' : 'Clean neighborhood') + '</small>',
+      readAloud: isSpanish ? '¡La calle está limpia! Gary le da las gracias a Preston!' : isGrandparents ? '條街好乾淨! Gary 話多謝 Preston!' : 'The street is clean! Gary says thank you Preston!',
+      content: isSpanish ? `
+        <p>¡La calle está ${cantoneseWord('clean')}!</p>
+        <p>Gary ${cantoneseWord('thankyou')} Preston!</p>
+      ` : isGrandparents ? `
         <p>條街好 ${cantoneseWord('clean')}!</p>
         <p>Gary 話 ${cantoneseWord('thankyou')} Preston!</p>
       ` : `
@@ -239,8 +273,12 @@ function getPages() {
     {
       type: 'finale',
       imagePlaceholder: '🎉🚛⭐',
-      readAloud: isGrandparents ? 'Gary 響號角! 叻仔! 好幫手 Preston!' : 'Gary honks his horn! Good job! Great helper Preston!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'Gary toca la bocina! ¡Buen trabajo! ¡Gran ayudante Preston!' : isGrandparents ? 'Gary 響號角! 叻仔! 好幫手 Preston!' : 'Gary honks his horn! Good job! Great helper Preston!',
+      content: isSpanish ? `
+        <p>¡Gary toca la bocina!</p>
+        <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
+        <p>¡Gran ayudante Preston!</p>
+      ` : isGrandparents ? `
         <p>Gary 響號角!</p>
         <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
         <p>好幫手 Preston!</p>
@@ -259,7 +297,15 @@ let currentPage = 0;
 // Updated: Now shows BOTH Chinese and English for Preston mode
 function cantoneseWord(key) {
   const word = vocab[key];
-  if (isGrandparents) {
+  if (isSpanish) {
+    return `
+      <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
+        <span class="chinese">${word.chinese}</span>
+        <span class="jyutping">${word.jyutping}</span>
+        <span class="english-hint">(${word.spanish})</span>
+      </span>
+    `;
+  } else if (isGrandparents) {
     // Grandparents mode: Show English, learn pronunciation
     return `
       <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
@@ -288,7 +334,22 @@ function speak(key) {
     setTimeout(() => btn.style.transform = '', 300);
   }
   
-  if (isGrandparents) {
+  if (isSpanish) {
+    const audio = getCachedAudio(`../../assets/audio/tts/${key}.mp3`);
+    audio.onended = () => {
+      setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+    };
+    audio.onerror = () => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    };
+    audio.play().catch(() => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    });
+  } else if (isGrandparents) {
     // Grandparents: Just English
     const audio = getCachedAudio(`../../assets/audio/english/${key}.mp3`);
     audio.onerror = () => speakText(word.english, 'en-US');
@@ -361,7 +422,7 @@ function renderPage() {
       <div class="answers">
         ${page.options.map(n => `
           <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
-            ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
+            ${n} ${isSpanish ? numbers[n].spanish : isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
       </div>
@@ -380,7 +441,7 @@ function renderPage() {
       <div class="answers">
         ${page.options.map(n => `
           <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
-            ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
+            ${n} ${isSpanish ? numbers[n].spanish : isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
       </div>

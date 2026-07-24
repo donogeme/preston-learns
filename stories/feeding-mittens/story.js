@@ -1,23 +1,24 @@
 // Preston Feeds Mittens - Story Data and Logic
-// Bilingual: Preston learns Cantonese, Grandparents learn English
+// Bilingual: Preston learns Cantonese, Grandparents learn English, Spanish speakers learn Cantonese
 
 const urlParams = new URLSearchParams(window.location.search);
 const mode = urlParams.get('mode') || 'preston';
 const isGrandparents = mode === 'grandparents';
+const isSpanish = mode === 'spanish';
 
 const vocab = {
-  cat: { english: 'Cat', chinese: '貓', jyutping: 'maau1', emoji: '🐱' },
-  mittens: { english: 'Mittens', chinese: 'Mittens', jyutping: 'Mittens', emoji: '🐱' },
-  hungry: { english: 'Hungry', chinese: '肚餓', jyutping: 'tou5 ngo6', emoji: '😋' },
-  food: { english: 'Food', chinese: '食物', jyutping: 'sik6 mat6', emoji: '🍽️' },
-  fish: { english: 'Fish', chinese: '魚', jyutping: 'jyu4', emoji: '🐟' },
-  chicken: { english: 'Chicken', chinese: '雞', jyutping: 'gai1', emoji: '🍗' },
-  milk: { english: 'Milk', chinese: '奶', jyutping: 'naai5', emoji: '🥛' },
-  water: { english: 'Water', chinese: '水', jyutping: 'seoi2', emoji: '💧' },
-  good: { english: 'Good', chinese: '好', jyutping: 'hou2', emoji: '✅' },
-  bad: { english: 'Bad', chinese: '唔好', jyutping: 'm4 hou2', emoji: '❌' },
-  healthy: { english: 'Healthy', chinese: '健康', jyutping: 'gin6 hong1', emoji: '💪' },
-  yummy: { english: 'Yummy', chinese: '好食', jyutping: 'hou2 sik6', emoji: '😋' },
+  cat: { english: 'Cat', chinese: '貓', jyutping: 'maau1', emoji: '🐱', spanish: 'Gato' },
+  mittens: { english: 'Mittens', chinese: 'Mittens', jyutping: 'Mittens', emoji: '🐱', spanish: 'Mittens' },
+  hungry: { english: 'Hungry', chinese: '肚餓', jyutping: 'tou5 ngo6', emoji: '😋', spanish: 'Hambriento' },
+  food: { english: 'Food', chinese: '食物', jyutping: 'sik6 mat6', emoji: '🍽️', spanish: 'Comida' },
+  fish: { english: 'Fish', chinese: '魚', jyutping: 'jyu4', emoji: '🐟', spanish: 'Pescado' },
+  chicken: { english: 'Chicken', chinese: '雞', jyutping: 'gai1', emoji: '🍗', spanish: 'Pollo' },
+  milk: { english: 'Milk', chinese: '奶', jyutping: 'naai5', emoji: '🥛', spanish: 'Leche' },
+  water: { english: 'Water', chinese: '水', jyutping: 'seoi2', emoji: '💧', spanish: 'Agua' },
+  good: { english: 'Good', chinese: '好', jyutping: 'hou2', emoji: '✅', spanish: 'Bueno' },
+  bad: { english: 'Bad', chinese: '唔好', jyutping: 'm4 hou2', emoji: '❌', spanish: 'Malo' },
+  healthy: { english: 'Healthy', chinese: '健康', jyutping: 'gin6 hong1', emoji: '💪', spanish: 'Saludable' },
+  yummy: { english: 'Yummy', chinese: '好食', jyutping: 'hou2 sik6', emoji: '😋', spanish: '¡Delicioso!' },
 };
 
 // Generic speak function with callback
@@ -74,6 +75,15 @@ const ui = {
     home: '🏠 主頁',
     celebration: '🎉 做得好!',
     celebrationText: '你學識點樣餵貓!'
+  },
+  spanish: {
+    tapHint: '¡Toca la palabra para oírla!',
+    next: 'Siguiente ➡️',
+    back: '⬅️ Atrás',
+    finish: '🎉 ¡Terminar!',
+    home: '🏠 Inicio',
+    celebration: '🎉 ¡Buen trabajo!',
+    celebrationText: '¡Aprendiste cómo alimentar a Mittens!'
   }
 };
 
@@ -84,56 +94,68 @@ const pages = [
   {
     type: 'story',
     image: 'pages/mittens-intro.png',
-    text: isGrandparents 
+    text: isSpanish
+      ? 'Preston tiene un <word key="cat">gato</word>. <word key="cat">Se llama Mittens</word>. Mittens tiene <word key="hungry">hambre</word>!'
+      : isGrandparents
       ? 'Preston has a cat. <word key="cat">Her name is Mittens</word>. Mittens is <word key="hungry">hungry</word>!'
       : 'Preston has a <word key="cat">cat</word> (貓). Her name is Mittens. Mittens is <word key="hungry">hungry</word> (肚餓)!',
-    readAloud: isGrandparents
-      ? 'Preston has a cat. Her name is Mittens. Mittens is hungry!'
-      : 'Preston has a cat. Her name is Mittens. Mittens is hungry!'
+    readAloud: 'Preston has a cat. Her name is Mittens. Mittens is hungry!'
   },
   {
     type: 'choice',
     image: 'pages/food-choices.png',
-    question: isGrandparents
+    question: isSpanish
+      ? '¿Qué debería darle Preston de comer a Mittens?'
+      : isGrandparents
       ? 'What should Preston feed Mittens?'
       : 'Preston should feed Mittens what?',
-    readAloud: isGrandparents
+    readAloud: isSpanish
+      ? '¿Qué debería darle Preston de comer a Mittens? Mira las opciones de comida'
+      : isGrandparents
       ? 'What should Preston feed Mittens? Look at the food choices'
       : 'Preston 應該餵 Mittens 食咩? Look at the food choices',
     choices: [
       { 
         id: 'fish',
         emoji: '🐟',
-        label: isGrandparents ? 'Fish / 魚' : '魚 / Fish',
+        label: isSpanish ? 'Pescado / 魚' : isGrandparents ? 'Fish / 魚' : '魚 / Fish',
         correct: true,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? '¡Buena elección! ¡A los gatos les encanta el pescado! ¡Delicioso!'
+          : isGrandparents
           ? 'Good choice! Cats love fish! 好食!'
           : '叻仔! Cats love 魚!'
       },
       {
         id: 'chocolate',
         emoji: '🍫', 
-        label: isGrandparents ? 'Chocolate / 朱古力' : '朱古力 / Chocolate',
+        label: isSpanish ? 'Chocolate / 朱古力' : isGrandparents ? 'Chocolate / 朱古力' : '朱古力 / Chocolate',
         correct: false,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? '¡No! ¡El chocolate es peligroso para los gatos! ¡Malo!'
+          : isGrandparents
           ? 'No! Chocolate is dangerous for cats! 唔好!'
           : '唔好! Chocolate is dangerous for cats!'
       },
       {
         id: 'milk',
         emoji: '🥛',
-        label: isGrandparents ? 'Milk / 奶' : '奶 / Milk',
+        label: isSpanish ? 'Leche / 奶' : isGrandparents ? 'Milk / 奶' : '奶 / Milk',
         correct: false,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? 'La leche puede molestar el estómago del gato. ¡El agua es mejor!'
+          : isGrandparents
           ? 'Milk can upset cat tummies. Water is better!'
           : '奶 can upset cat tummies. 水 is better!'
       },
       {
         id: 'pizza',
         emoji: '🍕',
-        label: isGrandparents ? 'Pizza / 薄餅' : '薄餅 / Pizza',
+        label: isSpanish ? 'Pizza / 薄餅' : isGrandparents ? 'Pizza / 薄餅' : '薄餅 / Pizza',
         correct: false,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? '¡La pizza no es para gatos! ¡No es comida de gato!'
+          : isGrandparents
           ? 'Pizza is not for cats! 唔係貓嘅食物!'
           : '薄餅 is not for cats! 唔係貓嘅食物!'
       }
@@ -142,56 +164,68 @@ const pages = [
   {
     type: 'story',
     image: 'pages/mittens-eats-fish.png',
-    text: isGrandparents
+    text: isSpanish
+      ? 'Mittens se come el <word key="fish">pescado</word>. <word key="yummy">¡Delicioso!</word> ¡Miau miau!'
+      : isGrandparents
       ? 'Mittens eats the <word key="fish">fish</word>. <word key="yummy">Yummy</word>! Meow meow!'
       : 'Mittens eats the <word key="fish">fish</word> (魚). <word key="yummy">Yummy</word> (好食)! Meow meow!',
-    readAloud: isGrandparents
-      ? 'Mittens eats the fish. Yummy! Meow meow!'
-      : 'Mittens eats the fish. Yummy! Meow meow!'
+    readAloud: 'Mittens eats the fish. Yummy! Meow meow!'
   },
   {
     type: 'choice',
     image: 'pages/lunch-time.png',
-    question: isGrandparents
+    question: isSpanish
+      ? '¡Hora del almuerzo! ¿Qué más pueden comer los gatos?'
+      : isGrandparents
       ? 'It\'s lunchtime! What else can cats eat?'
       : 'Lunchtime! Cats can eat what else?',
-    readAloud: isGrandparents
+    readAloud: isSpanish
+      ? '¡Hora del almuerzo! ¿Qué más pueden comer los gatos?'
+      : isGrandparents
       ? 'It\'s lunchtime! What else can cats eat?'
       : 'Lunchtime! Cats 可以食咩?',
     choices: [
       {
         id: 'chicken',
         emoji: '🍗',
-        label: isGrandparents ? 'Chicken / 雞' : '雞 / Chicken',
+        label: isSpanish ? 'Pollo / 雞' : isGrandparents ? 'Chicken / 雞' : '雞 / Chicken',
         correct: true,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? '¡Perfecto! ¡El pollo cocido es saludable! ¡Saludable!'
+          : isGrandparents
           ? 'Perfect! Cooked chicken is healthy! 健康!'
           : '好叻! Cooked 雞 is 健康!'
       },
       {
         id: 'cookies',
         emoji: '🍪',
-        label: isGrandparents ? 'Cookies / 曲奇' : '曲奇 / Cookies',
+        label: isSpanish ? 'Galletas / 曲奇' : isGrandparents ? 'Cookies / 曲奇' : '曲奇 / Cookies',
         correct: false,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? '¡Las galletas son para personas, no para gatos!'
+          : isGrandparents
           ? 'Cookies are for people, not cats!'
           : '曲奇 are for people, not cats!'
       },
       {
         id: 'cheese',
         emoji: '🧀',
-        label: isGrandparents ? 'Cheese / 芝士' : '芝士 / Cheese',
+        label: isSpanish ? 'Queso / 芝士' : isGrandparents ? 'Cheese / 芝士' : '芝士 / Cheese',
         correct: false,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? 'Un poquito está bien, pero no demasiado!'
+          : isGrandparents
           ? 'A tiny bit is okay, but not too much!'
           : 'A tiny bit is okay, but not too much!'
       },
       {
         id: 'ice-cream',
         emoji: '🍦',
-        label: isGrandparents ? 'Ice Cream / 雪糕' : '雪糕 / Ice Cream',
+        label: isSpanish ? 'Helado / 雪糕' : isGrandparents ? 'Ice Cream / 雪糕' : '雪糕 / Ice Cream',
         correct: false,
-        feedback: isGrandparents
+        feedback: isSpanish
+          ? '¡Demasiado frío y dulce para los gatos!'
+          : isGrandparents
           ? 'Too cold and sweet for cats!'
           : 'Too cold and sweet for cats!'
       }
@@ -200,24 +234,34 @@ const pages = [
   {
     type: 'story',
     image: 'pages/mittens-happy.png',
-    text: isGrandparents
+    text: isSpanish
+      ? 'Mittens está <word key="good">feliz</word> y <word key="healthy">saludable</word>! ¡Muy feliz!'
+      : isGrandparents
       ? 'Mittens is <word key="good">happy</word> and <word key="healthy">healthy</word>! 好開心!'
       : 'Mittens is <word key="good">happy</word> (好) and <word key="healthy">healthy</word> (健康)! 好開心!',
-    readAloud: isGrandparents
-      ? 'Mittens is happy and healthy! Good job Preston!'
-      : 'Mittens is happy and healthy! Good job Preston!'
+    readAloud: 'Mittens is happy and healthy! Good job Preston!'
   },
   {
     type: 'finale',
     image: 'pages/celebration.png',
-    title: isGrandparents ? '🎉 Well Done!' : '🎉 Good Job! 叻仔!',
-    text: isGrandparents
+    title: isSpanish ? '🎉 ¡Bien Hecho!' : isGrandparents ? '🎉 Well Done!' : '🎉 Good Job! 叻仔!',
+    text: isSpanish
+      ? 'Preston aprendió qué alimentos son buenos para los gatos!'
+      : isGrandparents
       ? 'Preston learned what foods are good for cats!'
       : 'Preston learned what foods are good for cats! (學識咗咩食物好俾貓食)',
-    readAloud: isGrandparents
+    readAloud: isSpanish
+      ? '¡Bien hecho! Preston aprendió qué alimentos son buenos para los gatos! ¡Buen trabajo!'
+      : isGrandparents
       ? 'Well done! Preston learned what foods are good for cats! Good job!'
       : 'Well done! Preston learned what foods are good for cats! Good job!',
-    facts: isGrandparents ? [
+    facts: isSpanish ? [
+      '✅ El pescado (魚) y el pollo (雞) son buenos',
+      '✅ La comida para gatos (貓糧) es la mejor',
+      '✅ Agua fresca (新鮮水) todos los días',
+      '❌ No chocolate (朱古力) - ¡peligroso!',
+      '❌ No comida chatarra para humanos (垃圾食物)'
+    ] : isGrandparents ? [
       '✅ Fish and chicken are good',
       '✅ Cat food is best',
       '✅ Fresh water every day',
@@ -308,7 +352,11 @@ function showPage(pageNum) {
         const key = this.getAttribute('key');
         const v = vocab[key];
         if (v) {
-          if (isGrandparents) {
+          if (isSpanish) {
+            speakText(v.chinese, 'zh-HK', () => {
+              setTimeout(() => speakText(v.spanish, 'es-ES'), 300);
+            });
+          } else if (isGrandparents) {
             speakText(v.english, 'en-US');
           } else {
             speakText(v.chinese, 'zh-HK', () => {

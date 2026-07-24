@@ -1,30 +1,31 @@
 // Firetruck Rescue - Story Data and Logic
-// Bilingual: Preston learns Cantonese, Grandparents learn English
+// Bilingual: Preston learns Cantonese, Grandparents learn English, Spanish speakers learn Cantonese
 
 const urlParams = new URLSearchParams(window.location.search);
 const mode = urlParams.get('mode') || 'preston';
 const isGrandparents = mode === 'grandparents';
+const isSpanish = mode === 'spanish';
 
 const vocab = {
-  firetruck: { english: 'Firetruck', chinese: '消防車', jyutping: 'siu1 fong4 ce1', emoji: '🚒' },
-  ladder: { english: 'Ladder', chinese: '梯', jyutping: 'tai1', emoji: '🪜' },
-  cat: { english: 'Cat', chinese: '貓', jyutping: 'maau1', emoji: '🐱' },
-  tree: { english: 'Tree', chinese: '樹', jyutping: 'syu6', emoji: '🌳' },
-  water: { english: 'Water', chinese: '水', jyutping: 'seoi2', emoji: '💧' },
-  fire: { english: 'Fire', chinese: '火', jyutping: 'fo2', emoji: '🔥' },
-  hero: { english: 'Hero', chinese: '英雄', jyutping: 'jing1 hung4', emoji: '🦸' },
-  letsgo: { english: "Let's go", chinese: '加油', jyutping: 'gaa1 jau2', emoji: '💪' },
-  welldone: { english: 'Well done', chinese: '好叻', jyutping: 'hou2 lek1', emoji: '👏' },
-  goodboy: { english: 'Good job', chinese: '叻仔', jyutping: 'lek1 zai2', emoji: '⭐' },
+  firetruck: { english: 'Firetruck', chinese: '消防車', jyutping: 'siu1 fong4 ce1', emoji: '🚒', spanish: 'Camión de bomberos' },
+  ladder: { english: 'Ladder', chinese: '梯', jyutping: 'tai1', emoji: '🪜', spanish: 'Escalera' },
+  cat: { english: 'Cat', chinese: '貓', jyutping: 'maau1', emoji: '🐱', spanish: 'Gato' },
+  tree: { english: 'Tree', chinese: '樹', jyutping: 'syu6', emoji: '🌳', spanish: 'Árbol' },
+  water: { english: 'Water', chinese: '水', jyutping: 'seoi2', emoji: '💧', spanish: 'Agua' },
+  fire: { english: 'Fire', chinese: '火', jyutping: 'fo2', emoji: '🔥', spanish: 'Fuego' },
+  hero: { english: 'Hero', chinese: '英雄', jyutping: 'jing1 hung4', emoji: '🦸', spanish: 'Héroe' },
+  letsgo: { english: "Let's go", chinese: '加油', jyutping: 'gaa1 jau2', emoji: '💪', spanish: '¡Vamos!' },
+  welldone: { english: 'Well done', chinese: '好叻', jyutping: 'hou2 lek1', emoji: '👏', spanish: '¡Bien hecho!' },
+  goodboy: { english: 'Good job', chinese: '叻仔', jyutping: 'lek1 zai2', emoji: '⭐', spanish: '¡Buen trabajo!' },
 };
 
 const numbers = {
-  1: { english: 'One', chinese: '一', jyutping: 'jat1', file: 'one' },
-  2: { english: 'Two', chinese: '二', jyutping: 'ji6', file: 'two' },
-  3: { english: 'Three', chinese: '三', jyutping: 'saam1', file: 'three' },
-  4: { english: 'Four', chinese: '四', jyutping: 'sei3', file: 'four' },
-  5: { english: 'Five', chinese: '五', jyutping: 'ng5', file: 'five' },
-  6: { english: 'Six', chinese: '六', jyutping: 'luk6', file: 'six' },
+  1: { english: 'One', chinese: '一', jyutping: 'jat1', file: 'one', spanish: 'Uno' },
+  2: { english: 'Two', chinese: '二', jyutping: 'ji6', file: 'two', spanish: 'Dos' },
+  3: { english: 'Three', chinese: '三', jyutping: 'saam1', file: 'three', spanish: 'Tres' },
+  4: { english: 'Four', chinese: '四', jyutping: 'sei3', file: 'four', spanish: 'Cuatro' },
+  5: { english: 'Five', chinese: '五', jyutping: 'ng5', file: 'five', spanish: 'Cinco' },
+  6: { english: 'Six', chinese: '六', jyutping: 'luk6', file: 'six', spanish: 'Seis' },
 };
 
 // Audio cache — reuse Audio objects instead of creating new ones on every tap
@@ -48,12 +49,16 @@ function speakText(text, lang, callback) {
   }
 }
 
-// Speak a number - now speaks BOTH languages for Preston
+// Speak a number
 function speakNumber(n) {
   const num = numbers[n];
   if (!num) return;
   
-  if (isGrandparents) {
+  if (isSpanish) {
+    speakText(num.spanish, 'es-ES', () => {
+      setTimeout(() => speakText(num.chinese, 'zh-HK'), 300);
+    });
+  } else if (isGrandparents) {
     speakText(num.english, 'en-US');
   } else {
     // Preston: Cantonese first, then English
@@ -78,7 +83,7 @@ function readPageAloud() {
     const btn = document.getElementById('read-aloud-btn');
     if (btn) btn.classList.add('speaking');
     
-    const lang = isGrandparents ? 'zh-HK' : 'en-US';
+    const lang = isGrandparents ? 'zh-HK' : isSpanish ? 'es-ES' : 'en-US';
     speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = lang;
@@ -108,6 +113,15 @@ const ui = {
     home: '🏠 主頁',
     celebration: '🎉 Good job! 好叻!',
     celebrationText: '你學識咗消防車嘅英文!'
+  },
+  spanish: {
+    tapHint: '¡Toca la palabra para oírla!',
+    next: 'Siguiente ➡️',
+    back: '⬅️ Atrás',
+    finish: '🎉 ¡Terminar!',
+    home: '🏠 Inicio',
+    celebration: '🎉 ¡Buen trabajo! 叻仔!',
+    celebrationText: '¡Ayudaste al camión de bomberos a salvar el día!'
   }
 };
 
@@ -117,9 +131,13 @@ function getPages() {
   return [
     {
       type: 'story',
-      imagePlaceholder: '🚒✨<br><small>' + (isGrandparents ? '一架紅色消防車' : 'A shiny red firetruck') + '</small>',
-      readAloud: isGrandparents ? 'Preston 見到一架大消防車!' : 'Preston sees a big red firetruck! Tap the word to hear it in Cantonese.',
-      content: isGrandparents ? `
+      imagePlaceholder: '🚒✨<br><small>' + (isSpanish ? 'Un brillante camión de bomberos rojo' : isGrandparents ? '一架紅色消防車' : 'A shiny red firetruck') + '</small>',
+      readAloud: isSpanish ? 'Preston ve un gran camión de bomberos rojo. ¡Toca la palabra para oírla en cantonés!' : isGrandparents ? 'Preston 見到一架大消防車!' : 'Preston sees a big red firetruck! Tap the word to hear it in Cantonese.',
+      content: isSpanish ? `
+        <p><strong>Preston</strong> ve un gran</p>
+        ${cantoneseWord('firetruck')}!
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p><strong>Preston</strong> 見到一架大</p>
         ${cantoneseWord('firetruck')}!
         <p class="tap-hint">${t.tapHint}</p>
@@ -132,8 +150,13 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🔔🚨🔔',
-      readAloud: isGrandparents ? '鈴鈴鈴! 警鐘響咗! 有隻貓咪困咗喺樹上!' : 'Ring ring! The alarm goes off! A kitty is stuck in a tree! Let\'s go!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? '¡Ring ring! ¡Suena la alarma! ¡Un gatito está atrapado en un árbol! ¡Vamos!' : isGrandparents ? '鈴鈴鈴! 警鐘響咗! 有隻貓咪困咗喺樹上!' : 'Ring ring! The alarm goes off! A kitty is stuck in a tree! Let\'s go!',
+      content: isSpanish ? `
+        <p>¡RING RING! ¡Suena la alarma!</p>
+        <p>¡Un gatito está atrapado en un árbol!</p>
+        <p>${cantoneseWord('letsgo')}</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>鈴鈴鈴! 警鐘響咗!</p>
         <p>有隻貓咪困咗喺樹上!</p>
         <p>${cantoneseWord('letsgo')}</p>
@@ -149,16 +172,20 @@ function getPages() {
       type: 'counting',
       item: '🛞',
       count: 4,
-      question: isGrandparents ? '消防車有幾多個 wheels?' : 'How many wheels on the firetruck?',
-      readAloud: isGrandparents ? '消防車有幾多個 wheels? 數一數!' : 'How many wheels on the firetruck? Count them!',
+      question: isSpanish ? '¿Cuántas ruedas tiene el camión de bomberos?' : isGrandparents ? '消防車有幾多個 wheels?' : 'How many wheels on the firetruck?',
+      readAloud: isSpanish ? '¿Cuántas ruedas tiene el camión de bomberos? ¡Cuéntalas!' : isGrandparents ? '消防車有幾多個 wheels? 數一數!' : 'How many wheels on the firetruck? Count them!',
       options: [3, 4, 5],
       correct: 4
     },
     {
       type: 'story',
       imagePlaceholder: '🪜🪜🪜',
-      readAloud: isGrandparents ? '消防車有梯! 呢個係梯。' : 'The firetruck has ladders! This is ladder.',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? '¡El camión de bomberos tiene escaleras! Esto es escalera.' : isGrandparents ? '消防車有梯! 呢個係梯。' : 'The firetruck has ladders! This is ladder.',
+      content: isSpanish ? `
+        <p>¡El camión de bomberos tiene escaleras!</p>
+        <p>Esto es ${cantoneseWord('ladder')}</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>消防車有梯!</p>
         <p>呢個係 ${cantoneseWord('ladder')}</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -172,16 +199,20 @@ function getPages() {
       type: 'counting',
       item: '🪜',
       count: 3,
-      question: isGrandparents ? '幾多條 ladders?' : 'How many ladders? 幾多梯?',
-      readAloud: isGrandparents ? '幾多條 ladders? 數一數!' : 'How many ladders? Count them!',
+      question: isSpanish ? '¿Cuántas escaleras? 幾多梯?' : isGrandparents ? '幾多條 ladders?' : 'How many ladders? 幾多梯?',
+      readAloud: isSpanish ? '¿Cuántas escaleras? ¡Cuéntalas!' : isGrandparents ? '幾多條 ladders? 數一數!' : 'How many ladders? Count them!',
       options: [2, 3, 4],
       correct: 3
     },
     {
       type: 'story',
-      imagePlaceholder: '🌳<br>🐱<br><small>' + (isGrandparents ? '貓咪困咗喺樹上' : 'Cat stuck in tree') + '</small>',
-      readAloud: isGrandparents ? '搵到隻貓啦! 一隻貓喺樹上面!' : 'There\'s the kitty! A cat in the tree!',
-      content: isGrandparents ? `
+      imagePlaceholder: '🌳<br>🐱<br><small>' + (isSpanish ? 'Gato atrapado en un árbol' : isGrandparents ? '貓咪困咗喺樹上' : 'Cat stuck in tree') + '</small>',
+      readAloud: isSpanish ? '¡Ahí está el gatito! Un gato en el árbol!' : isGrandparents ? '搵到隻貓啦! 一隻貓喺樹上面!' : 'There\'s the kitty! A cat in the tree!',
+      content: isSpanish ? `
+        <p>¡Ahí está el gatito!</p>
+        <p>Un ${cantoneseWord('cat')} en el ${cantoneseWord('tree')}!</p>
+        <p class="tap-hint">${t.tapHint}</p>
+      ` : isGrandparents ? `
         <p>搵到隻貓啦!</p>
         <p>一隻 ${cantoneseWord('cat')} 喺 ${cantoneseWord('tree')} 上面!</p>
         <p class="tap-hint">${t.tapHint}</p>
@@ -195,16 +226,20 @@ function getPages() {
       type: 'counting',
       item: '🐱',
       count: 2,
-      question: isGrandparents ? '要救幾多隻 cats?' : 'How many cats to rescue? 幾多貓?',
-      readAloud: isGrandparents ? '要救幾多隻 cats? 數一數!' : 'How many cats to rescue? Count them!',
+      question: isSpanish ? '¿Cuántos gatos rescatar? 幾多貓?' : isGrandparents ? '要救幾多隻 cats?' : 'How many cats to rescue? 幾多貓?',
+      readAloud: isSpanish ? '¿Cuántos gatos rescatar? ¡Cuéntalos!' : isGrandparents ? '要救幾多隻 cats? 數一數!' : 'How many cats to rescue? Count them!',
       options: [1, 2, 3],
       correct: 2
     },
     {
       type: 'story',
       imagePlaceholder: '🚒🪜🌳🐱',
-      readAloud: isGrandparents ? 'Preston 爬上梯! 佢救咗兩隻貓! 好叻!' : 'Preston climbs up the ladder! He rescues both kitties! Well done!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? '¡Preston sube la escalera! ¡Rescata a los dos gatitos! ¡Bien hecho!' : isGrandparents ? 'Preston 爬上梯! 佢救咗兩隻貓! 好叻!' : 'Preston climbs up the ladder! He rescues both kitties! Well done!',
+      content: isSpanish ? `
+        <p>Preston sube la escalera!</p>
+        <p>¡Rescata a los dos gatitos!</p>
+        <p>${cantoneseWord('welldone')}</p>
+      ` : isGrandparents ? `
         <p>Preston 爬上梯!</p>
         <p>佢救咗兩隻貓!</p>
         <p>${cantoneseWord('welldone')}</p>
@@ -216,8 +251,8 @@ function getPages() {
     },
     {
       type: 'math',
-      question: isGrandparents ? 'Preston 救咗 1 隻貓，再救多 1 隻。<br>1 + 1 = ?' : 'Preston saved 1 cat, then 1 more cat.<br>1 + 1 = ?',
-      readAloud: isGrandparents ? 'Preston 救咗 1 隻貓，再救多 1 隻。1 加 1 等於幾多?' : 'Preston saved 1 cat, then 1 more cat. 1 plus 1 equals what?',
+      question: isSpanish ? 'Preston rescató 1 gato, y luego 1 gato más.<br>1 + 1 = ?' : isGrandparents ? 'Preston 救咗 1 隻貓，再救多 1 隻。<br>1 + 1 = ?' : 'Preston saved 1 cat, then 1 more cat.<br>1 + 1 = ?',
+      readAloud: isSpanish ? 'Preston rescató 1 gato, y luego 1 gato más. 1 más 1 es igual a cuánto?' : isGrandparents ? 'Preston 救咗 1 隻貓，再救多 1 隻。1 加 1 等於幾多?' : 'Preston saved 1 cat, then 1 more cat. 1 plus 1 equals what?',
       visual: '🐱 + 🐱 = ?',
       options: [1, 2, 3],
       correct: 2
@@ -225,8 +260,12 @@ function getPages() {
     {
       type: 'story',
       imagePlaceholder: '🦸‍♂️🐱🐱',
-      readAloud: isGrandparents ? 'Preston 係英雄! 貓咪安全啦! 多謝 Preston!' : 'Preston is a hero! The kitties are safe! Thank you Preston!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? '¡Preston es un héroe! ¡Los gatitos están a salvo! ¡Gracias Preston!' : isGrandparents ? 'Preston 係英雄! 貓咪安全啦! 多謝 Preston!' : 'Preston is a hero! The kitties are safe! Thank you Preston!',
+      content: isSpanish ? `
+        <p>Preston es un ${cantoneseWord('hero')}!</p>
+        <p>¡Los gatitos están a salvo!</p>
+        <p>¡Gracias Preston!</p>
+      ` : isGrandparents ? `
         <p>Preston 係 ${cantoneseWord('hero')}!</p>
         <p>貓咪安全啦!</p>
         <p>多謝 Preston!</p>
@@ -239,8 +278,12 @@ function getPages() {
     {
       type: 'finale',
       imagePlaceholder: '🎉🚒⭐',
-      readAloud: isGrandparents ? '消防員話: 叻仔! 做得好 Preston!' : 'The firefighters say: Good job! Great job Preston!',
-      content: isGrandparents ? `
+      readAloud: isSpanish ? 'Los bomberos dicen: ¡Buen trabajo! ¡Gran trabajo Preston!' : isGrandparents ? '消防員話: 叻仔! 做得好 Preston!' : 'The firefighters say: Good job! Great job Preston!',
+      content: isSpanish ? `
+        <p>Los bomberos dicen:</p>
+        <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
+        <p>¡Gran trabajo Preston!</p>
+      ` : isGrandparents ? `
         <p>消防員話:</p>
         <p style="font-size: 2rem;">${cantoneseWord('goodboy')}!</p>
         <p>做得好 Preston!</p>
@@ -259,13 +302,22 @@ let currentPage = 0;
 // Updated: Shows BOTH Chinese and English for Preston mode
 function cantoneseWord(key) {
   const word = vocab[key];
-  if (isGrandparents) {
+  if (isSpanish) {
+    return `
+      <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
+        <span class="chinese">${word.chinese}</span>
+        <span class="jyutping">${word.jyutping}</span>
+        <span class="english-hint">(${word.spanish})</span>
+      </span>
+    `;
+  } else if (isGrandparents) {
     return `
       <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
         <span class="chinese">${word.english}</span>
       </span>
     `;
   } else {
+    // Preston mode: Show Chinese WITH English underneath so he can relate them
     return `
       <span class="cantonese" onclick="speak('${key}')" data-word="${key}">
         <span class="chinese">${word.chinese}</span>
@@ -286,7 +338,22 @@ function speak(key) {
     setTimeout(() => btn.style.transform = '', 300);
   }
   
-  if (isGrandparents) {
+  if (isSpanish) {
+    const audio = getCachedAudio(`../../assets/audio/tts/${key}.mp3`);
+    audio.onended = () => {
+      setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+    };
+    audio.onerror = () => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    };
+    audio.play().catch(() => {
+      speakText(word.chinese, 'zh-HK', () => {
+        setTimeout(() => speakText(word.spanish, 'es-ES'), 400);
+      });
+    });
+  } else if (isGrandparents) {
     const audio = getCachedAudio(`../../assets/audio/english/${key}.mp3`);
     audio.onerror = () => speakText(word.english, 'en-US');
     audio.play().catch(() => speakText(word.english, 'en-US'));
@@ -356,7 +423,7 @@ function renderPage() {
       <div class="answers">
         ${page.options.map(n => `
           <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
-            ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
+            ${n} ${isSpanish ? numbers[n].spanish : isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
       </div>
@@ -375,7 +442,7 @@ function renderPage() {
       <div class="answers">
         ${page.options.map(n => `
           <button class="answer-btn option" data-value="${n}" onclick="checkAnswer(${n}, ${page.correct})">
-            ${n} ${isGrandparents ? numbers[n].english : numbers[n].chinese}
+            ${n} ${isSpanish ? numbers[n].spanish : isGrandparents ? numbers[n].english : numbers[n].chinese}
           </button>
         `).join('')}
       </div>
