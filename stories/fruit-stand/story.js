@@ -430,7 +430,7 @@ function showCelebration() {
 }
 
 function goHome() {
-  window.location.href = '../../index.html';
+  window.location.href = `../../index.html?mode=${mode}`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {

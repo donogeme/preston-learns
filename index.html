@@ -190,9 +190,11 @@
       });
     }
 
-    // Check for saved mode on load
+    // Check for saved mode or URL param on load
     document.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('learningMode');
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlMode = urlParams.get('mode');
+      const saved = urlMode || localStorage.getItem('learningMode');
       if (saved) {
         updateUI(saved);
         document.querySelector(`.mode-btn:nth-child(${saved === 'preston' ? 1 : 2})`).classList.add('active');

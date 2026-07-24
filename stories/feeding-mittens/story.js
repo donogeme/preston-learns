@@ -243,6 +243,13 @@ function showPage(pageNum) {
   storyDiv.innerHTML = '';
   navDiv.innerHTML = '';
   
+  // Home button (always visible)
+  const homeBtn = document.createElement('button');
+  homeBtn.textContent = '🏠 Home';
+  homeBtn.style.cssText = 'background:#f0f0f0;border:none;font-size:1rem;padding:6px 16px;border-radius:20px;cursor:pointer;font-family:inherit;margin-bottom:10px;display:inline-block;';
+  homeBtn.onclick = () => { window.location.href = `../../index.html?mode=${mode}`; };
+  storyDiv.appendChild(homeBtn);
+  
   // Page indicator
   const pageIndicator = document.createElement('div');
   pageIndicator.className = 'page-indicator';
@@ -390,7 +397,7 @@ function showPage(pageNum) {
     finishBtn.className = 'nav-button primary';
     finishBtn.textContent = ui[mode].finish;
     finishBtn.onclick = () => {
-      window.location.href = '../../index.html';
+      window.location.href = `../../index.html?mode=${mode}`;
     };
     navDiv.appendChild(finishBtn);
   }

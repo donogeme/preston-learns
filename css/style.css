@@ -361,6 +361,35 @@ body.story-mode .storybook {
   color: white;
 }
 
+/* Storybook header - home button + layout */
+.storybook-header {
+  display: flex;
+  justify-content: flex-start;
+  padding: 10px 12px 0;
+  flex-shrink: 0;
+}
+
+.home-btn {
+  background: #f0f0f0;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 20px;
+  color: var(--text);
+  transition: background 0.2s, transform 0.2s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.home-btn:hover, .home-btn:active {
+  background: #e0e0e0;
+  transform: scale(1.05);
+}
+
 /* Progress dots */
 .progress {
   display: flex;
